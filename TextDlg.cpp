@@ -510,7 +510,10 @@ namespace
 
 			string.TrimRight();
 
-			outString = string;
+			if(!string.IsEmpty())
+			{
+				outString = string;
+			}
 		}
 
 		long pxLeft, pyTop, pcxWidth, pcyHeight;
