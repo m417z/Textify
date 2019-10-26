@@ -75,8 +75,9 @@
       <TypeLibraryName>$(IntDir)/Textify.tlb</TypeLibraryName>
       <DllDataFileName />
     </Midl>
+    <Manifest />
     <Manifest>
-      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+      <AdditionalManifestFiles>res\dpi-awareness.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -111,8 +112,9 @@
       <TypeLibraryName>$(IntDir)/Textify.tlb</TypeLibraryName>
       <DllDataFileName />
     </Midl>
+    <Manifest />
     <Manifest>
-      <EnableDpiAwareness>PerMonitorHighDPIAware</EnableDpiAwareness>
+      <AdditionalManifestFiles>res\dpi-awareness.manifest %(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
