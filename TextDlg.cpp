@@ -7,7 +7,7 @@
 
 namespace
 {
-	void GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& indexes);
+	void GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
 	BOOL UnadjustWindowRectEx(LPRECT prc, DWORD dwStyle, BOOL fMenu, DWORD dwExStyle);
 	BOOL WndAdjustWindowRect(CWindow window, LPRECT prc);
 	BOOL WndUnadjustWindowRect(CWindow window, LPRECT prc);
@@ -438,10 +438,11 @@ void CTextDlg::OnSelectionMaybeChanged()
 
 namespace
 {
-	void GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& indexes)
+	void GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes)
 	{
 		outString = L"(no text could be retrieved)";
 		outRc = CRect{ pt, CSize{ 0, 0 } };
+		outIndexes = std::vector<int>();
 
 		HRESULT hr;
 
@@ -459,37 +460,25 @@ namespace
 			return;
 		}
 
-		CString string;
+		DWORD processId = 0;
+		GetWindowThreadProcessId(window.m_hWnd, &processId);
 
-		CComBSTR bsName;
-		hr = pAcc->get_accName(vtChild, &bsName);
-		if(SUCCEEDED(hr) && bsName.Length() > 0)
+		while(true)
 		{
-			string = bsName;
-		}
+			CString string;
+			std::vector<int> indexes;
 
-		CComBSTR bsValue;
-		hr = pAcc->get_accValue(vtChild, &bsValue);
-		if(SUCCEEDED(hr) && bsValue.Length() > 0 &&
-			bsValue != bsName)
-		{
-			if(!string.IsEmpty())
+			CComBSTR bsName;
+			hr = pAcc->get_accName(vtChild, &bsName);
+			if(SUCCEEDED(hr) && bsName.Length() > 0)
 			{
-				string += L"\r\n";
-				indexes.push_back(string.GetLength());
+				string = bsName;
 			}
 
-			string += bsValue;
-		}
-
-		CComVariant vtRole;
-		hr = pAcc->get_accRole(CComVariant(CHILDID_SELF), &vtRole);
-		if(FAILED(hr) || vtRole.lVal != ROLE_SYSTEM_TITLEBAR) // ignore description for the system title bar
-		{
-			CComBSTR bsDescription;
-			hr = pAcc->get_accDescription(vtChild, &bsDescription);
-			if(SUCCEEDED(hr) && bsDescription.Length() > 0 &&
-				bsDescription != bsName && bsDescription != bsValue)
+			CComBSTR bsValue;
+			hr = pAcc->get_accValue(vtChild, &bsValue);
+			if(SUCCEEDED(hr) && bsValue.Length() > 0 &&
+				bsValue != bsName)
 			{
 				if(!string.IsEmpty())
 				{
@@ -497,22 +486,74 @@ namespace
 					indexes.push_back(string.GetLength());
 				}
 
-				string += bsDescription;
+				string += bsValue;
 			}
-		}
 
-		if(!string.IsEmpty())
-		{
-			// Normalize newlines.
-			string.Replace(L"\r\n", L"\n");
-			string.Replace(L"\r", L"\n");
-			string.Replace(L"\n", L"\r\n");
+			CComVariant vtRole;
+			hr = pAcc->get_accRole(CComVariant(CHILDID_SELF), &vtRole);
+			if(FAILED(hr) || vtRole.lVal != ROLE_SYSTEM_TITLEBAR) // ignore description for the system title bar
+			{
+				CComBSTR bsDescription;
+				hr = pAcc->get_accDescription(vtChild, &bsDescription);
+				if(SUCCEEDED(hr) && bsDescription.Length() > 0 &&
+					bsDescription != bsName && bsDescription != bsValue)
+				{
+					if(!string.IsEmpty())
+					{
+						string += L"\r\n";
+						indexes.push_back(string.GetLength());
+					}
 
-			string.TrimRight();
+					string += bsDescription;
+				}
+			}
 
 			if(!string.IsEmpty())
 			{
-				outString = string;
+				// Normalize newlines.
+				string.Replace(L"\r\n", L"\n");
+				string.Replace(L"\r", L"\n");
+				string.Replace(L"\n", L"\r\n");
+
+				string.TrimRight();
+
+				if(!string.IsEmpty())
+				{
+					outString = string;
+					outIndexes = indexes;
+					break;
+				}
+			}
+
+			if(vtChild.lVal == CHILDID_SELF)
+			{
+				CComPtr<IDispatch> pDispParent;
+				HRESULT hr = pAcc->get_accParent(&pDispParent);
+				if(FAILED(hr) || !pDispParent)
+				{
+					break;
+				}
+
+				CComQIPtr<IAccessible> pAccParent(pDispParent);
+				pAcc.Attach(pAccParent.Detach());
+
+				HWND hWnd;
+				hr = WindowFromAccessibleObject(pAcc, &hWnd);
+				if(FAILED(hr))
+				{
+					break;
+				}
+
+				DWORD compareProcessId = 0;
+				GetWindowThreadProcessId(hWnd, &compareProcessId);
+				if(compareProcessId != processId)
+				{
+					break;
+				}
+			}
+			else
+			{
+				vtChild.lVal = CHILDID_SELF;
 			}
 		}
 
