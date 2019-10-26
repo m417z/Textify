@@ -3,43 +3,34 @@
 
 #include "MainDlg.h"
 #include "TextDlg.h"
+#include "SettingsDlg.h"
 
 BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 {
 	m_hideDialog = (lInitParam != 0);
 
-	_ATLTRY
-	{
-		const HotKey& mouseHotKey = m_config.m_mouseHotKey;
-		m_mouseGlobalHook = std::make_unique<MouseGlobalHook>(m_hWnd, UWM_MOUSEHOOKCLICKED,
-			mouseHotKey.key, mouseHotKey.ctrl, mouseHotKey.alt, mouseHotKey.shift);
-	}
-	_ATLCATCH(e)
-	{
-		CString str = AtlGetErrorDescription(e);
-		MessageBox(
-			L"The following error has occurred during the initialization of Textify:\n" + str,
-			L"Textify initialization error", MB_ICONERROR);
-		EndDialog(e.m_hr);
-		return FALSE;
-	}
-
-	m_registeredHotKey = RegisterConfiguredHotKey(m_config.m_keybdHotKey);
-
-	// center the dialog on the screen
+	// Center the dialog on the screen.
 	CenterWindow();
 
-	// set icons
+	// Set icons.
 	HICON hIcon = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXICON), ::GetSystemMetrics(SM_CYICON));
 	SetIcon(hIcon, TRUE);
 	HICON hIconSmall = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
 	SetIcon(hIconSmall, FALSE);
 
-	// init dialog
-	InitConfigGui();
+	// Init dialog.
+	auto keysComboWnd = CComboBox(GetDlgItem(IDC_COMBO_KEYS));
+	keysComboWnd.AddString(L"Left mouse button");
+	keysComboWnd.AddString(L"Right mouse button");
+	keysComboWnd.AddString(L"Middle mouse button");
+
+	// Load and apply config.
+	m_config = std::make_unique<UserConfig>();
+	InitMouseAndKeyboardHotKeys();
+	ConfigToGui();
 
 	// Init and show tray icon.
-	if (!m_config.m_hideTrayIcon)
+	if(!m_config->m_hideTrayIcon)
 	{
 		InitNotifyIconData();
 		Shell_NotifyIcon(NIM_ADD, &m_notifyIconData);
@@ -50,12 +41,9 @@ BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 
 void CMainDlg::OnDestroy()
 {
-	if(m_registeredHotKey)
-		::UnregisterHotKey(m_hWnd, 1);
+	UninitMouseAndKeyboardHotKeys();
 
-	m_mouseGlobalHook.reset();
-
-	if (!m_config.m_hideTrayIcon)
+	if(!m_config->m_hideTrayIcon)
 	{
 		Shell_NotifyIcon(NIM_DELETE, &m_notifyIconData);
 	}
@@ -101,7 +89,7 @@ void CMainDlg::OnHotKey(int nHotKeyID, UINT uModifiers, UINT uVirtKey)
 		CPoint pt;
 		GetCursorPos(&pt);
 
-		CTextDlg dlgText(m_config.m_webButtonInfos, m_config.m_autoCopySelection);
+		CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection);
 		dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
 	}
 }
@@ -138,13 +126,13 @@ void CMainDlg::OnOK(UINT uNotifyCode, int nID, CWindow wndCtl)
 		break;
 	}
 
-	HotKey& mouseHotKey = m_config.m_mouseHotKey;
+	HotKey& mouseHotKey = m_config->m_mouseHotKey;
 	mouseHotKey.ctrl = ctrlKey;
 	mouseHotKey.alt = altKey;
 	mouseHotKey.shift= shiftKey;
 	mouseHotKey.key = mouseKey;
 
-	m_config.SaveToIniFile();
+	m_config->SaveToIniFile();
 
 	m_mouseGlobalHook->SetNewHotkey(mouseKey, ctrlKey, altKey, shiftKey);
 
@@ -158,17 +146,14 @@ void CMainDlg::OnCancel(UINT uNotifyCode, int nID, CWindow wndCtl)
 
 void CMainDlg::OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl)
 {
-	CPath iniFilePath;
-	GetModuleFileName(NULL, iniFilePath.m_strPath.GetBuffer(MAX_PATH), MAX_PATH);
-	iniFilePath.m_strPath.ReleaseBuffer();
-	iniFilePath.RenameExtension(L".ini");
-
-	CString commandLine;
-	commandLine.Format(L"/select,\"%s\"", iniFilePath.m_strPath.GetString());
-
-	if((int)ShellExecute(m_hWnd, L"open", L"explorer.exe", commandLine, NULL, SW_SHOWNORMAL) <= 32)
+	CSettingsDlg settingsDlg;
+	INT_PTR nRet = settingsDlg.DoModal();
+	if(nRet == IDOK)
 	{
-		MessageBox(L"An error occurred while trying to launch explorer.exe", NULL, MB_ICONHAND);
+		m_config = std::make_unique<UserConfig>();
+		UninitMouseAndKeyboardHotKeys();
+		InitMouseAndKeyboardHotKeys();
+		ConfigToGui();
 	}
 }
 
@@ -188,13 +173,13 @@ LRESULT CMainDlg::OnMouseHookClicked(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	CPoint pt;
 	GetCursorPos(&pt);
 
-	CTextDlg dlgText(m_config.m_webButtonInfos, m_config.m_autoCopySelection);
+	CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection);
 	return dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
 }
 
 LRESULT CMainDlg::OnTaskbarCreated(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	if (!m_config.m_hideTrayIcon)
+	if(!m_config->m_hideTrayIcon)
 	{
 		Shell_NotifyIcon(NIM_ADD, &m_notifyIconData);
 	}
@@ -256,7 +241,41 @@ LRESULT CMainDlg::OnExit(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-bool CMainDlg::RegisterConfiguredHotKey(const HotKey& keybdHotKey)
+void CMainDlg::InitMouseAndKeyboardHotKeys()
+{
+	_ATLTRY
+	{
+		const HotKey& mouseHotKey = m_config->m_mouseHotKey;
+		m_mouseGlobalHook = std::make_unique<MouseGlobalHook>(m_hWnd, UWM_MOUSEHOOKCLICKED,
+			mouseHotKey.key, mouseHotKey.ctrl, mouseHotKey.alt, mouseHotKey.shift);
+	}
+	_ATLCATCH(e)
+	{
+		CString str = AtlGetErrorDescription(e);
+		MessageBox(
+			L"The following error has occurred during the initialization of Textify:\n" + str,
+			L"Textify mouse hotkey initialization error", MB_ICONERROR);
+	}
+
+	m_registeredHotKey = RegisterConfiguredKeybdHotKey(m_config->m_keybdHotKey);
+	if(!m_registeredHotKey)
+	{
+		CString str = AtlGetErrorDescription(HRESULT_FROM_WIN32(GetLastError()));
+		MessageBox(
+			L"The following error has occurred during the initialization of Textify:\n" + str,
+			L"Textify keyboard hotkey initialization error", MB_ICONERROR);
+	}
+}
+
+void CMainDlg::UninitMouseAndKeyboardHotKeys()
+{
+	if(m_registeredHotKey)
+		::UnregisterHotKey(m_hWnd, 1);
+
+	m_mouseGlobalHook.reset();
+}
+
+bool CMainDlg::RegisterConfiguredKeybdHotKey(const HotKey& keybdHotKey)
 {
 	UINT hotKeyModifiers = 0;
 
@@ -272,19 +291,15 @@ bool CMainDlg::RegisterConfiguredHotKey(const HotKey& keybdHotKey)
 	return ::RegisterHotKey(m_hWnd, 1, hotKeyModifiers, keybdHotKey.key) != FALSE;
 }
 
-void CMainDlg::InitConfigGui()
+void CMainDlg::ConfigToGui()
 {
-	const HotKey& mouseHotKey = m_config.m_mouseHotKey;
+	const HotKey& mouseHotKey = m_config->m_mouseHotKey;
 
 	CButton(GetDlgItem(IDC_CHECK_CTRL)).SetCheck(mouseHotKey.ctrl ? BST_CHECKED : BST_UNCHECKED);
 	CButton(GetDlgItem(IDC_CHECK_ALT)).SetCheck(mouseHotKey.alt ? BST_CHECKED : BST_UNCHECKED);
 	CButton(GetDlgItem(IDC_CHECK_SHIFT)).SetCheck(mouseHotKey.shift ? BST_CHECKED : BST_UNCHECKED);
 
 	auto keysComboWnd = CComboBox(GetDlgItem(IDC_COMBO_KEYS));
-	keysComboWnd.AddString(L"Left mouse button");
-	keysComboWnd.AddString(L"Right mouse button");
-	keysComboWnd.AddString(L"Middle mouse button");
-
 	switch(mouseHotKey.key)
 	{
 	case VK_LBUTTON:

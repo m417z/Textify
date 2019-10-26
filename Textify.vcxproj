@@ -121,6 +121,7 @@
     <ClCompile Include="InjectAllowSetForegroundWindow.cpp" />
     <ClCompile Include="MainDlg.cpp" />
     <ClCompile Include="MouseGlobalHook.cpp" />
+    <ClCompile Include="SettingsDlg.cpp" />
     <ClCompile Include="Textify.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -140,6 +141,7 @@
     <ClInclude Include="MainDlg.h" />
     <ClInclude Include="MouseGlobalHook.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SettingsDlg.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TextDlg.h" />
     <ClInclude Include="URLEncode.h" />

@@ -60,16 +60,18 @@ public:
 	LRESULT OnExit(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
-	bool RegisterConfiguredHotKey(const HotKey& keybdHotKey);
-	void InitConfigGui();
+	void InitMouseAndKeyboardHotKeys();
+	void UninitMouseAndKeyboardHotKeys();
+	bool RegisterConfiguredKeybdHotKey(const HotKey& keybdHotKey);
+	void ConfigToGui();
 	void InitNotifyIconData();
 	void NotifyIconRightClickMenu();
 
+	std::unique_ptr<UserConfig> m_config;
 	std::unique_ptr<MouseGlobalHook> m_mouseGlobalHook;
 	UINT m_uTaskbarCreatedMsg = RegisterWindowMessage(L"TaskbarCreated");
 	UINT m_uTextfiyMsg = RegisterWindowMessage(L"Textify");
 	NOTIFYICONDATA m_notifyIconData = {};
 	bool m_hideDialog;
-	UserConfig m_config;
 	bool m_registeredHotKey;
 };

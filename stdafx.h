@@ -19,6 +19,7 @@
 
 #include <atlbase.h>
 #include <atlstr.h>
+#include <atlfile.h>
 #include <atlutil.h>
 #include <atltypes.h>
 
