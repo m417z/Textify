@@ -59,22 +59,23 @@ IDR_MAINFRAME           ICON                    "res\\Textify.ico"
 // Dialog
 //
 
-IDD_MAINDLG DIALOGEX 0, 0, 129, 129
+IDD_MAINDLG DIALOGEX 0, 0, 129, 155
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CAPTION | WS_SYSMENU
 CAPTION "Textify"
 CLASS "Textify"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
+    ICON            IDR_MAINFRAME,IDC_STATIC,7,7,21,20
     CONTROL         "Textify v1.6.2\n<a href=""http://rammichael.com/textify"">Homepage</a>",IDC_MAIN_SYSLINK,
                     "SysLink",WS_TABSTOP,35,7,87,16
-    GROUPBOX        "Mouse shortcut",IDC_STATIC,7,35,115,87
+    GROUPBOX        "Mouse shortcut",IDC_STATIC,7,35,115,70
     CONTROL         "&Ctrl",IDC_CHECK_CTRL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,49,27,10
     CONTROL         "Al&t",IDC_CHECK_ALT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,50,49,25,10
     CONTROL         "&Shift",IDC_CHECK_SHIFT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,83,49,31,10
     COMBOBOX        IDC_COMBO_KEYS,14,65,100,47,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "&Apply",IDOK,13,83,102,14
-    PUSHBUTTON      "&More settings",IDC_SHOW_INI,13,101,102,14
+    DEFPUSHBUTTON   "&Apply",IDOK,13,84,102,14
+    GROUPBOX        "Advanced",IDC_STATIC,7,113,115,35
+    PUSHBUTTON      "&More settings",IDC_SHOW_INI,13,127,102,14
 END
 
 IDD_TEXTDLG DIALOGEX 0, 0, 120, 31
@@ -111,7 +112,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 122
         TOPMARGIN, 7
-        BOTTOMMARGIN, 122
+        BOTTOMMARGIN, 148
     END
 
     IDD_TEXTDLG, DIALOG
