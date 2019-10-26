@@ -66,7 +66,7 @@ CLASS "Textify"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,21,20
-    CONTROL         "Textify v1.6.2\n<a href=""http://rammichael.com/textify"">Homepage</a>",IDC_MAIN_SYSLINK,
+    CONTROL         "Textify v1.7\n<a href=""http://rammichael.com/textify"">Homepage</a>",IDC_MAIN_SYSLINK,
                     "SysLink",WS_TABSTOP,35,7,87,16
     GROUPBOX        "Mouse shortcut",IDC_STATIC,7,35,115,70
     CONTROL         "&Ctrl",IDC_CHECK_CTRL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,49,27,10
@@ -162,8 +162,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,6,2,0
- PRODUCTVERSION 1,6,2,0
+ FILEVERSION 1,7,0,0
+ PRODUCTVERSION 1,7,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -179,12 +179,12 @@ BEGIN
         BLOCK "040904B0"
         BEGIN
             VALUE "FileDescription", "Textify"
-            VALUE "FileVersion", "1, 6, 2, 0"
+            VALUE "FileVersion", "1, 7, 0, 0"
             VALUE "InternalName", "Textify"
             VALUE "LegalCopyright", "Copyright 2017"
             VALUE "OriginalFilename", "Textify.exe"
             VALUE "ProductName", "Textify"
-            VALUE "ProductVersion", "1, 6, 2, 0"
+            VALUE "ProductVersion", "1, 7, 0, 0"
         END
     END
     BLOCK "VarFileInfo"
