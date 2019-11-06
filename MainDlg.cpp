@@ -36,9 +36,10 @@ BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	ConfigToGui();
 
 	// Init and show tray icon.
+	InitNotifyIconData();
+
 	if(!m_config->m_hideTrayIcon)
 	{
-		InitNotifyIconData();
 		Shell_NotifyIcon(NIM_ADD, &m_notifyIconData);
 	}
 
@@ -156,10 +157,18 @@ void CMainDlg::OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl)
 	INT_PTR nRet = settingsDlg.DoModal();
 	if(nRet == IDOK)
 	{
+		bool oldHideTrayIcon = m_config->m_hideTrayIcon;
+
 		m_config = std::make_unique<UserConfig>();
 		UninitMouseAndKeyboardHotKeys();
 		InitMouseAndKeyboardHotKeys();
 		ConfigToGui();
+
+		bool newHideTrayIcon = m_config->m_hideTrayIcon;
+		if(newHideTrayIcon != oldHideTrayIcon)
+		{
+			Shell_NotifyIcon(newHideTrayIcon ? NIM_DELETE : NIM_ADD, &m_notifyIconData);
+		}
 	}
 }
 
