@@ -146,6 +146,7 @@
     <ClInclude Include="TextDlg.h" />
     <ClInclude Include="URLEncode.h" />
     <ClInclude Include="UserConfig.h" />
+    <ClInclude Include="version.h" />
     <ClInclude Include="WebAppLaunch.h" />
     <ClInclude Include="wow64ext\internal.h" />
     <ClInclude Include="wow64ext\wow64ext.h" />
@@ -155,6 +156,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\Textify.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Textify.rc2" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

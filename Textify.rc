@@ -38,6 +38,7 @@ END
 
 3 TEXTINCLUDE 
 BEGIN
+    "#include ""Textify.rc2""\r\n"
     "\0"
 END
 
@@ -65,8 +66,8 @@ CAPTION "Textify"
 CLASS "Textify"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    ICON            IDR_MAINFRAME,IDC_STATIC,7,7,21,20
-    CONTROL         "Textify v1.7\n<a href=""http://rammichael.com/textify"">Homepage</a>",IDC_MAIN_SYSLINK,
+    ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
+    CONTROL         "Textify v%s\n<a href=""http://rammichael.com/textify"">Homepage</a>",IDC_MAIN_SYSLINK,
                     "SysLink",WS_TABSTOP,35,7,87,16
     GROUPBOX        "Mouse shortcut",IDC_STATIC,7,35,115,70
     CONTROL         "&Ctrl",IDC_CHECK_CTRL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,49,27,10
@@ -153,44 +154,6 @@ BEGIN
     VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT
     VK_F6,          ID_NEXT_PANE,           VIRTKEY 
     VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Version
-//
-
-VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,7,0,0
- PRODUCTVERSION 1,7,0,0
- FILEFLAGSMASK 0x3fL
-#ifdef _DEBUG
- FILEFLAGS 0x1L
-#else
- FILEFLAGS 0x0L
-#endif
- FILEOS 0x4L
- FILETYPE 0x2L
- FILESUBTYPE 0x0L
-BEGIN
-    BLOCK "StringFileInfo"
-    BEGIN
-        BLOCK "040904B0"
-        BEGIN
-            VALUE "FileDescription", "Textify"
-            VALUE "FileVersion", "1, 7, 0, 0"
-            VALUE "InternalName", "Textify"
-            VALUE "LegalCopyright", "Copyright 2017"
-            VALUE "OriginalFilename", "Textify.exe"
-            VALUE "ProductName", "Textify"
-            VALUE "ProductVersion", "1, 7, 0, 0"
-        END
-    END
-    BLOCK "VarFileInfo"
-    BEGIN
-        VALUE "Translation", 0x409, 1200
-    END
 END
 
 
@@ -306,4 +269,15 @@ END
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "Textify.rc2"
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
 

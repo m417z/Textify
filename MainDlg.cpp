@@ -4,6 +4,7 @@
 #include "MainDlg.h"
 #include "TextDlg.h"
 #include "SettingsDlg.h"
+#include "version.h"
 
 BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 {
@@ -19,6 +20,11 @@ BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	SetIcon(hIconSmall, FALSE);
 
 	// Init dialog.
+	CString introText;
+	GetDlgItemText(IDC_MAIN_SYSLINK, introText);
+	introText.Replace(L"%s", VER_FILE_VERSION_WSTR);
+	SetDlgItemText(IDC_MAIN_SYSLINK, introText);
+
 	auto keysComboWnd = CComboBox(GetDlgItem(IDC_COMBO_KEYS));
 	keysComboWnd.AddString(L"Left mouse button");
 	keysComboWnd.AddString(L"Right mouse button");
