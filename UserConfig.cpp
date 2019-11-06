@@ -63,18 +63,11 @@ bool UserConfig::LoadFromIniFile()
 
 		webButtonInfo.iconPath = RelativeToAbsolutePath(szBuffer);
 
-		GetPrivateProfileString(iniSectionName, L"url", L"", szBuffer, _countof(szBuffer), iniFilePath);
+		GetPrivateProfileString(iniSectionName, L"command", L"", szBuffer, _countof(szBuffer), iniFilePath);
 		if(*szBuffer == L'\0')
 			break;
 
-		webButtonInfo.url = szBuffer;
-
-		GetPrivateProfileString(iniSectionName, L"parameters", L"", szBuffer, _countof(szBuffer), iniFilePath);
-		if(*szBuffer != L'\0')
-			webButtonInfo.params = szBuffer;
-
-		int externalBrowser = GetPrivateProfileInt(iniSectionName, L"external_browser", 0, iniFilePath);
-		webButtonInfo.externalBrowser = (externalBrowser != 0);
+		webButtonInfo.command = szBuffer;
 
 		webButtonInfo.width = GetPrivateProfileInt(iniSectionName, L"width", 0, iniFilePath);
 		webButtonInfo.height = GetPrivateProfileInt(iniSectionName, L"height", 0, iniFilePath);

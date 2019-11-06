@@ -4,66 +4,184 @@
 
 namespace
 {
+	enum class PopupBrowserType
+	{
+		None,
+		Chrome,
+		Firefox,
+		IeControl
+	};
+
 	const int g_defaultWidth = 400;
 	const int g_defaultHeight = 700;
 
-	bool OpenLink(const WCHAR *pLink, const WCHAR* params = NULL);
+	PopupBrowserType DetectPopupBrowserType();
+	bool ExecuteCommand(const WCHAR *command);
 	bool OpenWebApp(const WCHAR *urlWithParam, int width, int height, CString* errorMessage);
 }
 
-bool WebAppLaunch(const WCHAR* url, const WCHAR* params, const WCHAR* replacement, bool externalBrowser, int width, int height, CString* errorMessage)
+bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, int height, CString* errorMessage)
 {
-	CString formattedUrl = url;
-	formattedUrl.Replace(L"%s", URLEncoder::Encode(replacement));
+	PopupBrowserType popupBrowserType;
+	CString formattedCommand;
 
-	if(externalBrowser)
+	if(wcsncmp(L"popup-web!", command, sizeof("popup-web!") - 1) == 0)
 	{
-		CString formattedParams = params;
-		formattedParams.Replace(L"%s", replacement);
+		formattedCommand = command + (sizeof("popup-web!") - 1);
+		popupBrowserType = DetectPopupBrowserType();
+	}
+	else if(wcsncmp(L"popup-chrome!", command, sizeof("popup-chrome!") - 1) == 0)
+	{
+		formattedCommand = command + (sizeof("popup-chrome!") - 1);
+		popupBrowserType = PopupBrowserType::Chrome;
+	}
+	else if(wcsncmp(L"popup-firefox!", command, sizeof("popup-firefox!") - 1) == 0)
+	{
+		formattedCommand = command + (sizeof("popup-firefox!") - 1);
+		popupBrowserType = PopupBrowserType::Firefox;
+	}
+	else if(wcsncmp(L"popup-ie-control!", command, sizeof("popup-ie-control!") - 1) == 0)
+	{
+		formattedCommand = command + (sizeof("popup-ie-control!") - 1);
+		popupBrowserType = PopupBrowserType::IeControl;
+	}
+	else
+	{
+		formattedCommand = command;
+		popupBrowserType = PopupBrowserType::None;
+	}
 
-		if(!OpenLink(formattedUrl, formattedParams.IsEmpty() ? nullptr : formattedParams))
+	CString replacementWithoutQuotes = replacement;
+	replacementWithoutQuotes.Replace(L"\"", L"");
+
+	formattedCommand.Replace(L"%s", URLEncoder::Encode(replacement));
+	formattedCommand.Replace(L"%cs", replacementWithoutQuotes);
+	formattedCommand.Replace(L"%rs", replacement);
+
+	if(popupBrowserType == PopupBrowserType::Chrome)
+	{
+		// Prevent argument injection. We can escape this properly,
+		// but since it shouldn't be a part of a URL anyway, we just strip it.
+		formattedCommand.Replace(L"\"", L"");
+		CString chromeCommand = L"chrome.exe --app=\"" + formattedCommand + L"\"";
+		return ExecuteCommand(chromeCommand);
+	}
+
+	if(popupBrowserType == PopupBrowserType::Firefox)
+	{
+		formattedCommand.Replace(L"\"", L"");
+		CString firefoxCommand;
+		firefoxCommand.Format(L"firefox.exe -width %d -height %d -new-window \"%s\"",
+			width, height, formattedCommand.GetString());
+		return ExecuteCommand(firefoxCommand);
+	}
+
+	if(popupBrowserType == PopupBrowserType::IeControl)
+	{
+		return OpenWebApp(formattedCommand, width, height, errorMessage);
+	}
+
+	if(!ExecuteCommand(formattedCommand))
+	{
+		if(errorMessage)
 		{
-			if(errorMessage)
-			{
-				*errorMessage =
-					L"Could not open link.\n"
-					L"\n"
-					L"In order to use web links, you need to have a web browser (e.g. Internet Explorer).";
-			}
-
-			return false;
+			*errorMessage =
+				L"Could not execute command.\n"
+				L"\n"
+				L"In order to use web links, you need to have a web browser (e.g. Google Chrome or Mozilla Firefox).";
 		}
 
-		return true;
+		return false;
 	}
 
-	if(width <= 0 || height <= 0)
-	{
-		width = g_defaultWidth;
-		height = g_defaultHeight;
-	}
-
-	CDC hdc = ::GetDC(NULL);
-	if(hdc)
-	{
-		width = MulDiv(width, hdc.GetDeviceCaps(LOGPIXELSX), 96);
-		height = MulDiv(height, hdc.GetDeviceCaps(LOGPIXELSX), 96);
-		hdc.DeleteDC();
-	}
-
-	return OpenWebApp(formattedUrl, width, height, errorMessage);
+	return true;
 }
 
 namespace
 {
-	bool OpenLink(const WCHAR* link, const WCHAR* params /*= NULL*/)
+	PopupBrowserType DetectPopupBrowserType()
 	{
-		HINSTANCE hRet = ::ShellExecute(nullptr, L"open", link, params, NULL, SW_SHOWNORMAL);
+		DWORD dwError;
+		CRegKey regKey;
+
+		dwError = regKey.Open(HKEY_CURRENT_USER,
+			L"Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\http\\UserChoice",
+			KEY_QUERY_VALUE | KEY_WOW64_64KEY);
+		if(dwError != ERROR_SUCCESS)
+			return PopupBrowserType::IeControl;
+
+		WCHAR szProgId[64];
+		ULONG nChars = _countof(szProgId);
+		dwError = regKey.QueryStringValue(L"ProgId", szProgId, &nChars);
+		if(dwError != ERROR_SUCCESS)
+			return PopupBrowserType::IeControl;
+
+		// ProgId string reference:
+		// https://superuser.com/a/571854
+
+		if(_wcsicmp(szProgId, L"ChromeHTML") == 0)
+		{
+			return PopupBrowserType::Chrome;
+		}
+
+		if(_wcsicmp(szProgId, L"FirefoxURL") == 0)
+		{
+			return PopupBrowserType::Firefox;
+		}
+
+		return PopupBrowserType::IeControl;
+	}
+
+	bool ExecuteCommand(const WCHAR* command)
+	{
+		CString commandWithoutArgs = command;
+		commandWithoutArgs.Trim();
+
+		CString args;
+
+		if(!UrlIsW(commandWithoutArgs, URLIS_APPLIABLE))
+		{
+			// Get args from command line. See also functions
+			// ShellExecCmdLine, SplitParams, at:
+			// https://github.com/reactos/reactos/blob/master/dll/win32/shell32/shlexec.cpp
+
+			args = PathGetArgs(commandWithoutArgs);
+			if(!args.IsEmpty())
+			{
+				commandWithoutArgs = commandWithoutArgs.Left(
+					commandWithoutArgs.GetLength() - args.GetLength());
+				commandWithoutArgs.TrimRight();
+			}
+
+			if(commandWithoutArgs.GetAt(0) == L'\"' &&
+				commandWithoutArgs.GetAt(commandWithoutArgs.GetLength() - 1) == L'\"')
+			{
+				commandWithoutArgs = commandWithoutArgs.Mid(1, commandWithoutArgs.GetLength() - 2);
+			}
+		}
+
+		HINSTANCE hRet = ::ShellExecute(nullptr, nullptr,
+			commandWithoutArgs, args.IsEmpty() ? nullptr : args,
+			nullptr, SW_SHOWNORMAL);
 		return (int)hRet > 32;
 	}
 
 	bool OpenWebApp(const WCHAR *urlWithParam, int width, int height, CString* errorMessage)
 	{
+		if(width <= 0 || height <= 0)
+		{
+			width = g_defaultWidth;
+			height = g_defaultHeight;
+		}
+
+		CDC hdc = ::GetDC(NULL);
+		if(hdc)
+		{
+			width = MulDiv(width, hdc.GetDeviceCaps(LOGPIXELSX), 96);
+			height = MulDiv(height, hdc.GetDeviceCaps(LOGPIXELSX), 96);
+			hdc.DeleteDC();
+		}
+
 		CPoint pt;
 		GetCursorPos(&pt);
 

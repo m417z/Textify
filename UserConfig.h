@@ -11,9 +11,7 @@ struct HotKey
 struct WebButtonInfo
 {
 	CPath iconPath;
-	CString url;
-	CString params;
-	bool externalBrowser;
+	CString command;
 	int width;
 	int height;
 };

@@ -117,12 +117,12 @@ void CTextDlg::OnCommand(UINT uNotifyCode, int nID, CWindow wndCtl)
 
 		const auto& buttonInfo = m_webButtonInfos[buttonIndex];
 		CString errorMessage;
-		bool succeeded = WebAppLaunch(buttonInfo.url, buttonInfo.params, selectedText,
-			buttonInfo.externalBrowser, buttonInfo.width, buttonInfo.height, &errorMessage);
+		bool succeeded = CommandLaunch(buttonInfo.command, selectedText,
+			buttonInfo.width, buttonInfo.height, &errorMessage);
 
 		if(!succeeded)
 		{
-			MessageBox(errorMessage, L"Textify: could not open web page", MB_ICONERROR);
+			MessageBox(errorMessage, L"Textify error", MB_ICONERROR);
 		}
 
 		EndDialog(0);

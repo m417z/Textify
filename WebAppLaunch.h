@@ -1,3 +1,3 @@
 #pragma once
 
-bool WebAppLaunch(const WCHAR* url, const WCHAR* params, const WCHAR* replacement, bool externalBrowser, int width, int height, CString* errorMessage);
+bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, int height, CString* errorMessage);
