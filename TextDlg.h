@@ -21,10 +21,11 @@ public:
 		MSG_WM_CHAR(OnChar)
 	END_MSG_MAP()
 
-	CTextDlg(std::vector<WebButtonInfo> webButtonInfos, bool autoCopySelection = false) :
+	CTextDlg(std::vector<WebButtonInfo> webButtonInfos, bool autoCopySelection = false, bool unicodeSpacesToAscii = false) :
 		m_wndEdit(this, 1),
 		m_webButtonInfos(std::move(webButtonInfos)),
-		m_autoCopySelection(autoCopySelection) {}
+		m_autoCopySelection(autoCopySelection),
+		m_unicodeSpacesToAscii(unicodeSpacesToAscii) {}
 
 	BOOL OnIdle();
 
@@ -41,7 +42,7 @@ public:
 
 private:
 	CContainedWindowT<CEdit> m_wndEdit;
-	bool m_autoCopySelection;
+	bool m_autoCopySelection, m_unicodeSpacesToAscii;
 	std::vector<int> m_editIndexes;
 	int m_lastSelStart = 0, m_lastSelEnd = 0;
 	std::vector<WebButtonInfo> m_webButtonInfos;

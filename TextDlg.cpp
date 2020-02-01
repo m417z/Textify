@@ -8,6 +8,7 @@
 namespace
 {
 	void GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
+	void UnicodeSpacesToAscii(CString& string);
 	BOOL UnadjustWindowRectEx(LPRECT prc, DWORD dwStyle, BOOL fMenu, DWORD dwExStyle);
 	BOOL WndAdjustWindowRect(CWindow window, LPRECT prc);
 	BOOL WndUnadjustWindowRect(CWindow window, LPRECT prc);
@@ -25,6 +26,11 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	CString strText;
 	CRect rcAccObject;
 	GetAccessibleInfoFromPoint(ptEvent, wndAcc, strText, rcAccObject, m_editIndexes);
+
+	if(m_unicodeSpacesToAscii)
+	{
+		UnicodeSpacesToAscii(strText);
+	}
 
 	// Check whether the target window is another TextDlg.
 	if(wndAcc)
@@ -562,6 +568,47 @@ namespace
 		if(SUCCEEDED(hr))
 		{
 			outRc = CRect{ CPoint{ pxLeft, pyTop }, CSize{ pcxWidth, pcyHeight } };
+		}
+	}
+
+	void UnicodeSpacesToAscii(CString& string)
+	{
+		// Based on:
+		// https://stackoverflow.com/a/21797208
+		// https://www.compart.com/en/unicode/category/Zs
+		WCHAR szUnicodeSpaces[] = {
+			L'\u00A0',
+			L'\u2000',
+			L'\u2001',
+			L'\u2002',
+			L'\u2003',
+			L'\u2004',
+			L'\u2005',
+			L'\u2006',
+			L'\u2007',
+			L'\u2008',
+			L'\u2009',
+			L'\u200A',
+			L'\u202F',
+			L'\u205F',
+			L'\u3000'
+		};
+		WCHAR szUnicodeInvisible[] = {
+			L'\u200B',
+			L'\u200C',
+			L'\u200D',
+			L'\u200E',
+			L'\u200F'
+		};
+
+		for(int i = 0; i < _countof(szUnicodeSpaces); i++)
+		{
+			string.Replace(szUnicodeSpaces[i], L' ');
+		}
+
+		for(int i = 0; i < _countof(szUnicodeInvisible); i++)
+		{
+			string.Remove(szUnicodeInvisible[i]);
 		}
 	}
 

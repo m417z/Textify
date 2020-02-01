@@ -28,6 +28,7 @@ public:
 	HotKey m_keybdHotKey = HotKey{ 'T', true, true, true };
 	bool m_autoCopySelection = false;
 	bool m_hideTrayIcon = false;
+	bool m_unicodeSpacesToAscii = false;
 	std::vector<WebButtonInfo> m_webButtonInfos;
 
 	const int m_maxWebButtons = 20;

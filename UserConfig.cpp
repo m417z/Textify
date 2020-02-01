@@ -49,6 +49,9 @@ bool UserConfig::LoadFromIniFile()
 	int hideTrayIcon = GetPrivateProfileInt(L"config", L"hide_tray_icon", 0, iniFilePath);
 	m_hideTrayIcon = hideTrayIcon != 0;
 
+	int unicodeSpacesToAscii = GetPrivateProfileInt(L"config", L"unicode_spaces_to_ascii", 0, iniFilePath);
+	m_unicodeSpacesToAscii = unicodeSpacesToAscii != 0;
+
 	for(int i = 1; i <= m_maxWebButtons; i++)
 	{
 		CString iniSectionName;

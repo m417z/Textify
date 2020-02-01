@@ -96,7 +96,7 @@ void CMainDlg::OnHotKey(int nHotKeyID, UINT uModifiers, UINT uVirtKey)
 		CPoint pt;
 		GetCursorPos(&pt);
 
-		CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection);
+		CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection, m_config->m_unicodeSpacesToAscii);
 		dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
 	}
 }
@@ -188,7 +188,7 @@ LRESULT CMainDlg::OnMouseHookClicked(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	CPoint pt;
 	GetCursorPos(&pt);
 
-	CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection);
+	CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection, m_config->m_unicodeSpacesToAscii);
 	return dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
 }
 
