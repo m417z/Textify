@@ -33,6 +33,7 @@ extern CAppModule _Module;
 
 #include <memory>
 #include <vector>
+#include <unordered_set>
 
 #if defined _M_IX86
   #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")

@@ -576,39 +576,84 @@ namespace
 		// Based on:
 		// https://stackoverflow.com/a/21797208
 		// https://www.compart.com/en/unicode/category/Zs
-		WCHAR szUnicodeSpaces[] = {
-			L'\u00A0',
-			L'\u2000',
-			L'\u2001',
-			L'\u2002',
-			L'\u2003',
-			L'\u2004',
-			L'\u2005',
-			L'\u2006',
-			L'\u2007',
-			L'\u2008',
-			L'\u2009',
-			L'\u200A',
-			L'\u202F',
-			L'\u205F',
-			L'\u3000'
+		// https://www.compart.com/en/unicode/category/Cf
+		std::unordered_set<WCHAR> unicodeSpaces = {
+			L'\u00A0', // No-Break Space (NBSP)
+			//L'\u1680', // Ogham Space Mark
+			L'\u2000', // En Quad
+			L'\u2001', // Em Quad
+			L'\u2002', // En Space
+			L'\u2003', // Em Space
+			L'\u2004', // Three-Per-Em Space
+			L'\u2005', // Four-Per-Em Space
+			L'\u2006', // Six-Per-Em Space
+			L'\u2007', // Figure Space
+			L'\u2008', // Punctuation Space
+			L'\u2009', // Thin Space
+			L'\u200A', // Hair Space
+			L'\u202F', // Narrow No-Break Space (NNBSP)
+			L'\u205F', // Medium Mathematical Space (MMSP)
+			L'\u3000'  // Ideographic Space
 		};
-		WCHAR szUnicodeInvisible[] = {
-			L'\u200B',
-			L'\u200C',
-			L'\u200D',
-			L'\u200E',
-			L'\u200F'
+		std::unordered_set<WCHAR> unicodeInvisible = {
+			L'\u00AD', // Soft Hyphen (SHY)
+			//L'\u0600', // Arabic Number Sign
+			//L'\u0601', // Arabic Sign Sanah
+			//L'\u0602', // Arabic Footnote Marker
+			//L'\u0603', // Arabic Sign Safha
+			//L'\u0604', // Arabic Sign Samvat
+			//L'\u0605', // Arabic Number Mark Above
+			//L'\u061C', // Arabic Letter Mark (ALM)
+			//L'\u06DD', // Arabic End of Ayah
+			//L'\u070F', // Syriac Abbreviation Mark
+			//L'\u08E2', // Arabic Disputed End of Ayah
+			//L'\u180E', // Mongolian Vowel Separator (MVS)
+			L'\u200B', // Zero Width Space (ZWSP)
+			L'\u200C', // Zero Width Non-Joiner (ZWNJ)
+			L'\u200D', // Zero Width Joiner (ZWJ)
+			L'\u200E', // Left-to-Right Mark (LRM)
+			L'\u200F', // Right-to-Left Mark (RLM)
+			L'\u202A', // Left-to-Right Embedding (LRE)
+			L'\u202B', // Right-to-Left Embedding (RLE)
+			L'\u202C', // Pop Directional Formatting (PDF)
+			L'\u202D', // Left-to-Right Override (LRO)
+			L'\u202E', // Right-to-Left Override (RLO)
+			L'\u2060', // Word Joiner (WJ)
+			L'\u2061', // Function Application
+			L'\u2062', // Invisible Times
+			L'\u2063', // Invisible Separator
+			L'\u2064', // Invisible Plus
+			L'\u2066', // Left-to-Right Isolate (LRI)
+			L'\u2067', // Right-to-Left Isolate (RLI)
+			L'\u2068', // First Strong Isolate (FSI)
+			L'\u2069', // Pop Directional Isolate (PDI)
+			L'\u206A', // Inhibit Symmetric Swapping
+			L'\u206B', // Activate Symmetric Swapping
+			//L'\u206C', // Inhibit Arabic Form Shaping
+			//L'\u206D', // Activate Arabic Form Shaping
+			L'\u206E', // National Digit Shapes
+			L'\u206F', // Nominal Digit Shapes
+			L'\uFEFF', // Zero Width No-Break Space (BOM, ZWNBSP)
+			L'\uFFF9', // Interlinear Annotation Anchor
+			L'\uFFFA', // Interlinear Annotation Separator
+			L'\uFFFB'  // Interlinear Annotation Terminator
 		};
 
-		for(int i = 0; i < _countof(szUnicodeSpaces); i++)
+		int i = 0;
+		while(i < string.GetLength())
 		{
-			string.Replace(szUnicodeSpaces[i], L' ');
-		}
+			if(unicodeInvisible.find(string[i]) != unicodeInvisible.end())
+			{
+				string.Delete(i, 1);
+				continue;
+			}
 
-		for(int i = 0; i < _countof(szUnicodeInvisible); i++)
-		{
-			string.Remove(szUnicodeInvisible[i]);
+			if(unicodeSpaces.find(string[i]) != unicodeSpaces.end())
+			{
+				string.SetAt(i, L' ');
+			}
+
+			i++;
 		}
 	}
 
