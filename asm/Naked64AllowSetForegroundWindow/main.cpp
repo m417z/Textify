@@ -10,7 +10,7 @@
 // NOTE: module hashes are computed using all-caps unicode strings
 #define NTDLLDLL_HASH                   0x3CFA685D
 #define KERNEL32DLL_HASH                0x6A4ABC5B
-#define USER32DLL_HASH                  0X63C84283
+#define USER32DLL_HASH                  0x63C84283
 
 #define LDRLOADDLL_HASH                 0xB0988FE4
 #define GETMODULEHANDLEW_HASH           0xD332491A
