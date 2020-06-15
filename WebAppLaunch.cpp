@@ -8,6 +8,7 @@ namespace
 	{
 		None,
 		Chrome,
+		Edge,
 		Firefox,
 		IeControl
 	};
@@ -34,6 +35,11 @@ bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, in
 	{
 		formattedCommand = command + (sizeof("popup-chrome!") - 1);
 		popupBrowserType = PopupBrowserType::Chrome;
+	}
+	else if(wcsncmp(L"popup-edge!", command, sizeof("popup-edge!") - 1) == 0)
+	{
+		formattedCommand = command + (sizeof("popup-edge!") - 1);
+		popupBrowserType = PopupBrowserType::Edge;
 	}
 	else if(wcsncmp(L"popup-firefox!", command, sizeof("popup-firefox!") - 1) == 0)
 	{
@@ -65,6 +71,13 @@ bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, in
 		formattedCommand.Replace(L"\"", L"");
 		CString chromeCommand = L"chrome.exe --app=\"" + formattedCommand + L"\"";
 		return ExecuteCommand(chromeCommand);
+	}
+
+	if(popupBrowserType == PopupBrowserType::Edge)
+	{
+		formattedCommand.Replace(L"\"", L"");
+		CString edgeCommand = L"msedge.exe --app=\"" + formattedCommand + L"\"";
+		return ExecuteCommand(edgeCommand);
 	}
 
 	if(popupBrowserType == PopupBrowserType::Firefox)
@@ -119,9 +132,18 @@ namespace
 		// ProgId string reference:
 		// https://superuser.com/a/571854
 
-		if(_wcsicmp(szProgId, L"ChromeHTML") == 0)
+		if(_wcsicmp(szProgId, L"ChromeHTML") == 0 ||
+			_wcsicmp(szProgId, L"ChromeBHTML") == 0 ||
+			_wcsicmp(szProgId, L"ChromeDHTML") == 0)
 		{
 			return PopupBrowserType::Chrome;
+		}
+
+		if(_wcsicmp(szProgId, L"MSEdgeHTM") == 0 ||
+			_wcsicmp(szProgId, L"MSEdgeBHTML") == 0 ||
+			_wcsicmp(szProgId, L"MSEdgeDHTML") == 0)
+		{
+			return PopupBrowserType::Edge;
 		}
 
 		if(_wcsicmp(szProgId, L"FirefoxURL") == 0)
