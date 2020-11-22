@@ -73,5 +73,5 @@ private:
 	UINT m_uTextfiyMsg = RegisterWindowMessage(L"Textify");
 	NOTIFYICONDATA m_notifyIconData = {};
 	bool m_hideDialog;
-	bool m_registeredHotKey;
+	bool m_registeredHotKey = false;
 };
