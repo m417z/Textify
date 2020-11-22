@@ -306,7 +306,7 @@ bool CMainDlg::RegisterConfiguredKeybdHotKey(const HotKey& keybdHotKey)
 	if(keybdHotKey.shift)
 		hotKeyModifiers |= MOD_SHIFT;
 
-	return ::RegisterHotKey(m_hWnd, 1, hotKeyModifiers, keybdHotKey.key) != FALSE;
+	return ::RegisterHotKey(m_hWnd, 1, hotKeyModifiers | 0x4000 /*MOD_NOREPEAT*/, keybdHotKey.key) != FALSE;
 }
 
 void CMainDlg::ConfigToGui()
