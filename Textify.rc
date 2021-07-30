@@ -67,7 +67,7 @@ CLASS "Textify"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
-    CONTROL         "Textify v%s\n<a href=""http://rammichael.com/textify"">Homepage</a>",IDC_MAIN_SYSLINK,
+    CONTROL         "Textify v%s\n<a href=""https://rammichael.com/textify"">Homepage</a>",IDC_MAIN_SYSLINK,
                     "SysLink",WS_TABSTOP,35,7,87,16
     GROUPBOX        "Mouse shortcut",IDC_STATIC,7,35,115,70
     CONTROL         "&Ctrl",IDC_CHECK_CTRL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,49,27,10
