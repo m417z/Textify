@@ -54,7 +54,7 @@ void MouseGlobalHook::SetNewHotkey(int key, bool ctrl, bool alt, bool shift)
 	m_shiftKey = shift;
 }
 
-DWORD WINAPI MouseGlobalHook::MouseHookThreadProxy(void *pParameter)
+DWORD WINAPI MouseGlobalHook::MouseHookThreadProxy(void* pParameter)
 {
 	auto pThis = reinterpret_cast<MouseGlobalHook*>(pParameter);
 	return pThis->MouseHookThread();

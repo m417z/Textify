@@ -10,7 +10,7 @@ public:
 	void SetNewHotkey(int key, bool ctrl, bool alt, bool shift);
 
 private:
-	static DWORD WINAPI MouseHookThreadProxy(void *pParameter);
+	static DWORD WINAPI MouseHookThreadProxy(void* pParameter);
 	DWORD MouseHookThread();
 
 	static LRESULT CALLBACK LowLevelMouseProcProxy(int nCode, WPARAM wParam, LPARAM lParam);

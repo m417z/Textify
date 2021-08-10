@@ -136,7 +136,7 @@ void CMainDlg::OnOK(UINT uNotifyCode, int nID, CWindow wndCtl)
 	HotKey& mouseHotKey = m_config->m_mouseHotKey;
 	mouseHotKey.ctrl = ctrlKey;
 	mouseHotKey.alt = altKey;
-	mouseHotKey.shift= shiftKey;
+	mouseHotKey.shift = shiftKey;
 	mouseHotKey.key = mouseKey;
 
 	m_config->SaveToIniFile();

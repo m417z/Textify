@@ -10,7 +10,7 @@ namespace
 	int RunApp(HINSTANCE hInstance);
 	int CloseRunningApp(HINSTANCE hInstance);
 	ATOM RegisterDialogClass(LPCTSTR lpszClassName, HINSTANCE hInstance);
-	bool DoesParamExist(const WCHAR *pParam);
+	bool DoesParamExist(const WCHAR* pParam);
 }
 
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR /*lpstrCmdLine*/, int /*nCmdShow*/)
@@ -110,7 +110,7 @@ namespace
 		return ::RegisterClass(&wndcls);
 	}
 
-	bool DoesParamExist(const WCHAR *pParam)
+	bool DoesParamExist(const WCHAR* pParam)
 	{
 		for(int i = 1; i < __argc; i++)
 		{

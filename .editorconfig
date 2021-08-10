@@ -1,0 +1,14 @@
+# top-most EditorConfig file
+root = true
+
+# Windows-style newlines with a newline ending every file
+[*]
+end_of_line = crlf
+insert_final_newline = true
+
+# C/C++ code formatting
+[*.{c,cpp,h}]
+indent_style = tab
+trim_trailing_whitespace = true
+cpp_space_after_keywords_in_control_flow_statements = false
+cpp_new_line_before_while_in_do_while = true

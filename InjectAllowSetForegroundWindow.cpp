@@ -59,7 +59,7 @@ BOOL InjectAllowSetForegroundWindow(DWORD dwProcessId, DWORD dwTimeout)
 			{
 				HANDLE hThread = CreateRemoteThread(hProcess, NULL, 0,
 					(LPTHREAD_START_ROUTINE)pAllowSetForegroundWindow,
-					(void *)dwProcessId, 0, NULL);
+					(void*)dwProcessId, 0, NULL);
 				if(hThread)
 				{
 					if(WaitForSingleObject(hThread, dwTimeout) == WAIT_OBJECT_0)
@@ -104,7 +104,7 @@ static BOOL InjectFromWOW64AllowSetForegroundWindow(HANDLE hProcess, DWORD dwPro
 
 	BOOL bSucceeded = FALSE;
 
-	void *pRemoteCodeBuffer = VirtualAllocEx(hProcess, NULL,
+	void* pRemoteCodeBuffer = VirtualAllocEx(hProcess, NULL,
 		sizeof(pszNaked64AllowSetForegroundWindow) - 1, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 	if(pRemoteCodeBuffer)
 	{
@@ -116,7 +116,7 @@ static BOOL InjectFromWOW64AllowSetForegroundWindow(HANDLE hProcess, DWORD dwPro
 		{
 			DWORD64 hThread64 = MyCreateRemoteThread64(
 				(DWORD64)hProcess, (DWORD64)(LPTHREAD_START_ROUTINE)pRemoteCodeBuffer,
-				(DWORD64)(void *)dwProcessId);
+				(DWORD64)(void*)dwProcessId);
 			if(hThread64)
 			{
 				bCanFreeMemory = FALSE; // don't free if we time out or fail

@@ -17,8 +17,8 @@ namespace
 	const int g_defaultHeight = 700;
 
 	PopupBrowserType DetectPopupBrowserType();
-	bool ExecuteCommand(const WCHAR *command);
-	bool OpenWebApp(const WCHAR *urlWithParam, int width, int height, CString* errorMessage);
+	bool ExecuteCommand(const WCHAR* command);
+	bool OpenWebApp(const WCHAR* urlWithParam, int width, int height, CString* errorMessage);
 }
 
 bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, int height, CString* errorMessage)
@@ -188,7 +188,7 @@ namespace
 		return (int)hRet > 32;
 	}
 
-	bool OpenWebApp(const WCHAR *urlWithParam, int width, int height, CString* errorMessage)
+	bool OpenWebApp(const WCHAR* urlWithParam, int width, int height, CString* errorMessage)
 	{
 		if(width <= 0 || height <= 0)
 		{
