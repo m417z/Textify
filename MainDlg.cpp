@@ -306,7 +306,17 @@ bool CMainDlg::RegisterConfiguredKeybdHotKey(const HotKey& keybdHotKey)
 	if(keybdHotKey.shift)
 		hotKeyModifiers |= MOD_SHIFT;
 
-	return ::RegisterHotKey(m_hWnd, 1, hotKeyModifiers | 0x4000 /*MOD_NOREPEAT*/, keybdHotKey.key) != FALSE;
+	// Set MOD_NOREPEAT only for Windows 7 and newer.
+	OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
+	if(GetVersionEx(&osvi))
+	{
+		if(osvi.dwMajorVersion > 6 || (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion >= 1))
+		{
+			hotKeyModifiers |= 0x4000 /*MOD_NOREPEAT*/;
+		}
+	}
+
+	return ::RegisterHotKey(m_hWnd, 1, hotKeyModifiers, keybdHotKey.key) != FALSE;
 }
 
 void CMainDlg::ConfigToGui()
