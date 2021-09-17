@@ -46,6 +46,7 @@ private:
 	std::vector<int> m_editIndexes;
 	int m_lastSelStart = 0, m_lastSelEnd = 0;
 	std::vector<WebButtonInfo> m_webButtonInfos;
+	CToolTipCtrl m_webButtonTooltip;
 	std::vector<CIcon> m_webButtonIcons;
 	bool m_showingModalBrowserHost = false;
 

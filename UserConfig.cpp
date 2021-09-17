@@ -60,6 +60,9 @@ bool UserConfig::LoadFromIniFile()
 		WebButtonInfo webButtonInfo;
 		WCHAR szBuffer[1025];
 
+		GetPrivateProfileString(iniSectionName, L"name", L"", szBuffer, _countof(szBuffer), iniFilePath);
+		webButtonInfo.name = szBuffer;
+
 		GetPrivateProfileString(iniSectionName, L"icon", L"", szBuffer, _countof(szBuffer), iniFilePath);
 		if(*szBuffer == L'\0')
 			break;

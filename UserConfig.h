@@ -10,6 +10,7 @@ struct HotKey
 
 struct WebButtonInfo
 {
+	CString name;
 	CPath iconPath;
 	CString command;
 	int width;

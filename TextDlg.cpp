@@ -234,6 +234,14 @@ void CTextDlg::InitWebAppButtons()
 		m_webButtonIcons[0] = icon;
 	}
 
+	m_webButtonTooltip.Create(m_hWnd, NULL, NULL, WS_POPUP | TTS_NOPREFIX, WS_EX_TOPMOST);
+
+	if(m_webButtonInfos[0].name.GetLength() > 0)
+	{
+		m_webButtonTooltip.AddTool(
+			CToolInfo(TTF_SUBCLASS, firstButton, 0, NULL, (PWSTR)m_webButtonInfos[0].name.GetString()));
+	}
+
 	CRect firstButtonRect;
 	firstButton.GetWindowRect(firstButtonRect);
 
@@ -260,6 +268,12 @@ void CTextDlg::InitWebAppButtons()
 		{
 			newButton.SetIcon(icon);
 			m_webButtonIcons[i] = icon;
+		}
+
+		if(m_webButtonInfos[i].name.GetLength() > 0)
+		{
+			m_webButtonTooltip.AddTool(
+				CToolInfo(TTF_SUBCLASS, newButton, 0, NULL, (PWSTR)m_webButtonInfos[i].name.GetString()));
 		}
 	}
 }
