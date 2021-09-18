@@ -52,7 +52,7 @@ bool UserConfig::LoadFromIniFile()
 	int unicodeSpacesToAscii = GetPrivateProfileInt(L"config", L"unicode_spaces_to_ascii", 0, iniFilePath);
 	m_unicodeSpacesToAscii = unicodeSpacesToAscii != 0;
 
-	for(int i = 1; i <= m_maxWebButtons; i++)
+	for(int i = 1; ; i++)
 	{
 		CString iniSectionName;
 		iniSectionName.Format(L"web_button_%d", i);
@@ -128,7 +128,7 @@ bool UserConfig::SaveToIniFile()
 	if(!WritePrivateProfileString(L"keyboard", L"shift", str, iniFilePath))
 		succeeded = false;
 
-	for(int i = 1; i <= m_maxWebButtons; i++)
+	for(int i = 1; ; i++)
 	{
 		CString iniSectionName;
 		iniSectionName.Format(L"web_button_%d", i);

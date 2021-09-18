@@ -32,8 +32,6 @@ public:
 	bool m_unicodeSpacesToAscii = false;
 	std::vector<WebButtonInfo> m_webButtonInfos;
 
-	const int m_maxWebButtons = 20;
-
 private:
 	CPath GetIniFilePath();
 	CPath RelativeToAbsolutePath(CPath relativePath);
