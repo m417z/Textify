@@ -96,11 +96,8 @@ void CMainDlg::OnHotKey(int nHotKeyID, UINT uModifiers, UINT uVirtKey)
 		CPoint pt;
 		GetCursorPos(&pt);
 
-		if(!IsCursorOnExcludedProgram(pt))
-		{
-			CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection, m_config->m_unicodeSpacesToAscii);
-			dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
-		}
+		CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection, m_config->m_unicodeSpacesToAscii);
+		dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
 	}
 }
 
@@ -145,6 +142,7 @@ void CMainDlg::OnOK(UINT uNotifyCode, int nID, CWindow wndCtl)
 	m_config->SaveToIniFile();
 
 	m_mouseGlobalHook->SetNewHotkey(mouseKey, ctrlKey, altKey, shiftKey);
+	m_mouseGlobalHook->SetNewExcludedPrograms(m_config->m_excludedPrograms);
 
 	CButton(GetDlgItem(IDOK)).EnableWindow(FALSE);
 }
@@ -191,11 +189,8 @@ LRESULT CMainDlg::OnMouseHookClicked(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	CPoint pt;
 	GetCursorPos(&pt);
 
-	if(!IsCursorOnExcludedProgram(pt))
-	{
-		CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection, m_config->m_unicodeSpacesToAscii);
-		dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
-	}
+	CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection, m_config->m_unicodeSpacesToAscii);
+	dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
 
 	return 0;
 }
@@ -270,7 +265,8 @@ void CMainDlg::InitMouseAndKeyboardHotKeys()
 	{
 		const HotKey& mouseHotKey = m_config->m_mouseHotKey;
 		m_mouseGlobalHook = std::make_unique<MouseGlobalHook>(m_hWnd, UWM_MOUSEHOOKCLICKED,
-			mouseHotKey.key, mouseHotKey.ctrl, mouseHotKey.alt, mouseHotKey.shift);
+			mouseHotKey.key, mouseHotKey.ctrl, mouseHotKey.alt, mouseHotKey.shift,
+			m_config->m_excludedPrograms);
 	}
 	_ATLCATCH(e)
 	{
@@ -391,46 +387,4 @@ void CMainDlg::NotifyIconRightClickMenu()
 		EndDialog(0);
 		break;
 	}
-}
-
-bool CMainDlg::IsCursorOnExcludedProgram(POINT pt)
-{
-	if(m_config->m_excludedPrograms.size() == 0)
-		return false;
-
-	CWindow window = ::WindowFromPoint(pt);
-	if(!window)
-		return false;
-
-	DWORD dwProcessId = window.GetWindowProcessID();
-
-	DWORD dwDesiredAccess = PROCESS_QUERY_LIMITED_INFORMATION;
-
-	OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
-	if(GetVersionEx(&osvi) && osvi.dwMajorVersion <= 5)
-	{
-		dwDesiredAccess = PROCESS_QUERY_INFORMATION;
-	}
-
-	CHandle process(::OpenProcess(dwDesiredAccess, FALSE, dwProcessId));
-	if(!process)
-		return false;
-
-	WCHAR szProcessPath[MAX_PATH];
-	if(!GetProcessImageFileName(process, szProcessPath, ARRAYSIZE(szProcessPath)))
-		return false;
-
-	WCHAR* pProcessName = wcsrchr(szProcessPath, L'\\');
-	if(pProcessName)
-		pProcessName++;
-	else
-		pProcessName = szProcessPath;
-
-	for(const auto& program : m_config->m_excludedPrograms)
-	{
-		if(_wcsicmp(pProcessName, program) == 0)
-			return true;
-	}
-
-	return false;
 }

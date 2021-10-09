@@ -6,9 +6,11 @@
 MouseGlobalHook* volatile MouseGlobalHook::m_pThis;
 
 MouseGlobalHook::MouseGlobalHook(CWindow wndNotify, UINT msgNotify,
-	int key, bool ctrl, bool alt, bool shift) :
+	int key, bool ctrl, bool alt, bool shift,
+	std::vector<CString> excludedPrograms) :
 	m_wndNotify{ wndNotify }, m_msgNotify{ msgNotify },
-	m_mouseKey{ key }, m_ctrlKey{ ctrl }, m_altKey{ alt }, m_shiftKey{ shift }
+	m_mouseKey{ key }, m_ctrlKey{ ctrl }, m_altKey{ alt }, m_shiftKey{ shift },
+	m_excludedPrograms{ std::move(excludedPrograms) }
 {
 	if(_InterlockedCompareExchangePointer(
 		reinterpret_cast<void* volatile*>(&m_pThis), this, nullptr))
@@ -52,6 +54,12 @@ void MouseGlobalHook::SetNewHotkey(int key, bool ctrl, bool alt, bool shift)
 	m_ctrlKey = ctrl;
 	m_altKey = alt;
 	m_shiftKey = shift;
+}
+
+void MouseGlobalHook::SetNewExcludedPrograms(std::vector<CString> excludedPrograms)
+{
+	// Note: the change is not atomic, but that's probably good enough.
+	m_excludedPrograms = std::move(excludedPrograms);
 }
 
 DWORD WINAPI MouseGlobalHook::MouseHookThreadProxy(void* pParameter)
@@ -174,7 +182,7 @@ LRESULT MouseGlobalHook::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPar
 				}
 			}
 
-			if(hotkeyDownDetected)
+			if(hotkeyDownDetected && !IsCursorOnExcludedProgram(msllHookStruct->pt))
 			{
 				m_mouseDownEventHooked = true;
 				return 1;
@@ -192,4 +200,46 @@ LRESULT MouseGlobalHook::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lPar
 	}
 
 	return CallNextHookEx(m_lowLevelMouseHook, nCode, wParam, lParam);
+}
+
+bool MouseGlobalHook::IsCursorOnExcludedProgram(POINT pt)
+{
+	if(m_excludedPrograms.size() == 0)
+		return false;
+
+	CWindow window = ::WindowFromPoint(pt);
+	if(!window)
+		return false;
+
+	DWORD dwProcessId = window.GetWindowProcessID();
+
+	DWORD dwDesiredAccess = PROCESS_QUERY_LIMITED_INFORMATION;
+
+	OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
+	if(GetVersionEx(&osvi) && osvi.dwMajorVersion <= 5)
+	{
+		dwDesiredAccess = PROCESS_QUERY_INFORMATION;
+	}
+
+	CHandle process(::OpenProcess(dwDesiredAccess, FALSE, dwProcessId));
+	if(!process)
+		return false;
+
+	WCHAR szProcessPath[MAX_PATH];
+	if(!GetProcessImageFileName(process, szProcessPath, ARRAYSIZE(szProcessPath)))
+		return false;
+
+	WCHAR* pProcessName = wcsrchr(szProcessPath, L'\\');
+	if(pProcessName)
+		pProcessName++;
+	else
+		pProcessName = szProcessPath;
+
+	for(const auto& program : m_excludedPrograms)
+	{
+		if(_wcsicmp(pProcessName, program) == 0)
+			return true;
+	}
+
+	return false;
 }

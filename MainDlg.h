@@ -66,7 +66,6 @@ private:
 	void ConfigToGui();
 	void InitNotifyIconData();
 	void NotifyIconRightClickMenu();
-	bool IsCursorOnExcludedProgram(POINT pt);
 
 	std::unique_ptr<UserConfig> m_config;
 	std::unique_ptr<MouseGlobalHook> m_mouseGlobalHook;

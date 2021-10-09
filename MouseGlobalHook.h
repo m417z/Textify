@@ -4,10 +4,12 @@ class MouseGlobalHook
 {
 public:
 	MouseGlobalHook(CWindow wndNotify, UINT msgNotify,
-		int key, bool ctrl, bool alt, bool shift);
+		int key, bool ctrl, bool alt, bool shift,
+		std::vector<CString> excludedPrograms);
 	~MouseGlobalHook();
 
 	void SetNewHotkey(int key, bool ctrl, bool alt, bool shift);
+	void SetNewExcludedPrograms(std::vector<CString> excludedPrograms);
 
 private:
 	static DWORD WINAPI MouseHookThreadProxy(void* pParameter);
@@ -15,6 +17,7 @@ private:
 
 	static LRESULT CALLBACK LowLevelMouseProcProxy(int nCode, WPARAM wParam, LPARAM lParam);
 	LRESULT LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam);
+	bool IsCursorOnExcludedProgram(POINT pt);
 
 	static MouseGlobalHook* volatile m_pThis; // for the mouse procedure
 
@@ -22,6 +25,7 @@ private:
 	UINT m_msgNotify;
 	int m_mouseKey;
 	bool m_ctrlKey, m_altKey, m_shiftKey;
+	std::vector<CString> m_excludedPrograms;
 
 	volatile HANDLE m_mouseHookThread;
 	DWORD m_mouseHookThreadId;
