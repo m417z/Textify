@@ -124,7 +124,7 @@ namespace
 			return PopupBrowserType::IeControl;
 
 		WCHAR szProgId[64];
-		ULONG nChars = _countof(szProgId);
+		ULONG nChars = ARRAYSIZE(szProgId);
 		dwError = regKey.QueryStringValue(L"ProgId", szProgId, &nChars);
 		if(dwError != ERROR_SUCCESS)
 			return PopupBrowserType::IeControl;

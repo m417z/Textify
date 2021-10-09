@@ -96,8 +96,11 @@ void CMainDlg::OnHotKey(int nHotKeyID, UINT uModifiers, UINT uVirtKey)
 		CPoint pt;
 		GetCursorPos(&pt);
 
-		CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection, m_config->m_unicodeSpacesToAscii);
-		dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
+		if(!IsCursorOnExcludedProgram(pt))
+		{
+			CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection, m_config->m_unicodeSpacesToAscii);
+			dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
+		}
 	}
 }
 
@@ -188,8 +191,13 @@ LRESULT CMainDlg::OnMouseHookClicked(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	CPoint pt;
 	GetCursorPos(&pt);
 
-	CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection, m_config->m_unicodeSpacesToAscii);
-	return dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
+	if(!IsCursorOnExcludedProgram(pt))
+	{
+		CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection, m_config->m_unicodeSpacesToAscii);
+		dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
+	}
+
+	return 0;
 }
 
 LRESULT CMainDlg::OnTaskbarCreated(UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -383,4 +391,46 @@ void CMainDlg::NotifyIconRightClickMenu()
 		EndDialog(0);
 		break;
 	}
+}
+
+bool CMainDlg::IsCursorOnExcludedProgram(POINT pt)
+{
+	if(m_config->m_excludedPrograms.size() == 0)
+		return false;
+
+	CWindow window = ::WindowFromPoint(pt);
+	if(!window)
+		return false;
+
+	DWORD dwProcessId = window.GetWindowProcessID();
+
+	DWORD dwDesiredAccess = PROCESS_QUERY_LIMITED_INFORMATION;
+
+	OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
+	if(GetVersionEx(&osvi) && osvi.dwMajorVersion <= 5)
+	{
+		dwDesiredAccess = PROCESS_QUERY_INFORMATION;
+	}
+
+	CHandle process(::OpenProcess(dwDesiredAccess, FALSE, dwProcessId));
+	if(!process)
+		return false;
+
+	WCHAR szProcessPath[MAX_PATH];
+	if(!GetProcessImageFileName(process, szProcessPath, ARRAYSIZE(szProcessPath)))
+		return false;
+
+	WCHAR* pProcessName = wcsrchr(szProcessPath, L'\\');
+	if(pProcessName)
+		pProcessName++;
+	else
+		pProcessName = szProcessPath;
+
+	for(const auto& program : m_config->m_excludedPrograms)
+	{
+		if(_wcsicmp(pProcessName, program) == 0)
+			return true;
+	}
+
+	return false;
 }

@@ -60,16 +60,16 @@ bool UserConfig::LoadFromIniFile()
 		WebButtonInfo webButtonInfo;
 		WCHAR szBuffer[1025];
 
-		GetPrivateProfileString(iniSectionName, L"name", L"", szBuffer, _countof(szBuffer), iniFilePath);
+		GetPrivateProfileString(iniSectionName, L"name", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
 		webButtonInfo.name = szBuffer;
 
-		GetPrivateProfileString(iniSectionName, L"icon", L"", szBuffer, _countof(szBuffer), iniFilePath);
+		GetPrivateProfileString(iniSectionName, L"icon", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
 		if(*szBuffer == L'\0')
 			break;
 
 		webButtonInfo.iconPath = RelativeToAbsolutePath(szBuffer);
 
-		GetPrivateProfileString(iniSectionName, L"command", L"", szBuffer, _countof(szBuffer), iniFilePath);
+		GetPrivateProfileString(iniSectionName, L"command", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
 		if(*szBuffer == L'\0')
 			break;
 
@@ -79,6 +79,20 @@ bool UserConfig::LoadFromIniFile()
 		webButtonInfo.height = GetPrivateProfileInt(iniSectionName, L"height", 0, iniFilePath);
 
 		m_webButtonInfos.push_back(webButtonInfo);
+	}
+
+	for(int i = 1; ; i++)
+	{
+		CString iniKeyName;
+		iniKeyName.Format(L"%d", i);
+
+		WCHAR szBuffer[1025];
+
+		GetPrivateProfileString(L"exclude", iniKeyName, L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
+		if(*szBuffer == L'\0')
+			break;
+
+		m_excludedPrograms.push_back(szBuffer);
 	}
 
 	return true;

@@ -31,6 +31,7 @@ public:
 	bool m_hideTrayIcon = false;
 	bool m_unicodeSpacesToAscii = false;
 	std::vector<WebButtonInfo> m_webButtonInfos;
+	std::vector<CString> m_excludedPrograms;
 
 private:
 	CPath GetIniFilePath();

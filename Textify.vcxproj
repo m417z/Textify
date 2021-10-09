@@ -54,14 +54,14 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;PSAPI_VERSION=1;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>oleacc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>oleacc.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -91,13 +91,13 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ExceptionHandling>Sync</ExceptionHandling>
       <DebugInformationFormat />
-      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;PSAPI_VERSION=1;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalDependencies>oleacc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>oleacc.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
     <ResourceCompile>

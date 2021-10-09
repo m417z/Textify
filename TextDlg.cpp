@@ -38,7 +38,7 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 		if(wndAccRoot)
 		{
 			WCHAR szBuffer[32];
-			if(::GetClassName(wndAccRoot, szBuffer, _countof(szBuffer)) &&
+			if(::GetClassName(wndAccRoot, szBuffer, ARRAYSIZE(szBuffer)) &&
 				wcscmp(szBuffer, L"TextifyEditDlg") == 0)
 			{
 				wndAccRoot.SendMessage(WM_CLOSE);

@@ -32,6 +32,7 @@ extern CAppModule _Module;
 #include <atldlgs.h>
 
 #include <oleacc.h>
+#include <psapi.h>
 
 #include <memory>
 #include <vector>
