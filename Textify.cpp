@@ -1,7 +1,6 @@
 #include "stdafx.h"
 #include "resource.h"
 #include "MainDlg.h"
-#include "wow64ext/wow64ext.h"
 
 CAppModule _Module;
 
@@ -62,8 +61,6 @@ namespace
 
 			return 0;
 		}
-
-		Wow64ExtInitialize();
 
 		RegisterDialogClass(L"Textify", hInstance);
 		RegisterDialogClass(L"TextifyEditDlg", hInstance);

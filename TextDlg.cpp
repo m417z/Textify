@@ -2,7 +2,6 @@
 #include "resource.h"
 
 #include "TextDlg.h"
-#include "InjectAllowSetForegroundWindow.h"
 #include "WebAppLaunch.h"
 
 namespace
@@ -49,15 +48,14 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 		}
 	}
 
+	// Allows to steal focus
+	INPUT input{};
+	SendInput(1, &input, sizeof(INPUT));
+
 	if(!::SetForegroundWindow(m_hWnd))
 	{
-		InjectAllowSetForegroundWindow(GetCurrentProcessId(), 3000);
-
-		if(!::SetForegroundWindow(m_hWnd))
-		{
-			//EndDialog(0);
-			//return FALSE;
-		}
+		//EndDialog(0);
+		//return FALSE;
 	}
 
 	InitWebAppButtons();

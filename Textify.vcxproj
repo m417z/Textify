@@ -122,7 +122,6 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="InjectAllowSetForegroundWindow.cpp" />
     <ClCompile Include="MainDlg.cpp" />
     <ClCompile Include="MouseGlobalHook.cpp" />
     <ClCompile Include="SettingsDlg.cpp" />
@@ -135,13 +134,8 @@
     <ClCompile Include="URLEncode.cpp" />
     <ClCompile Include="UserConfig.cpp" />
     <ClCompile Include="WebAppLaunch.cpp" />
-    <ClCompile Include="wow64ext\wow64ext.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="InjectAllowSetForegroundWindow.h" />
     <ClInclude Include="MainDlg.h" />
     <ClInclude Include="MouseGlobalHook.h" />
     <ClInclude Include="resource.h" />
@@ -153,7 +147,6 @@
     <ClInclude Include="version.h" />
     <ClInclude Include="WebAppLaunch.h" />
     <ClInclude Include="wow64ext\internal.h" />
-    <ClInclude Include="wow64ext\wow64ext.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Textify.rc" />

@@ -30,13 +30,7 @@
     <ClCompile Include="MouseGlobalHook.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="InjectAllowSetForegroundWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="UserConfig.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wow64ext\wow64ext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="URLEncode.cpp">
@@ -65,16 +59,10 @@
     <ClInclude Include="MouseGlobalHook.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="InjectAllowSetForegroundWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="UserConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wow64ext\internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="wow64ext\wow64ext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="URLEncode.h">
