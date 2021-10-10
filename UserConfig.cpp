@@ -14,34 +14,28 @@ bool UserConfig::LoadFromIniFile()
 		return false;
 
 	int mouseKey = GetPrivateProfileInt(L"mouse", L"key", 0, iniFilePath);
-	if(mouseKey == VK_LBUTTON || mouseKey == VK_RBUTTON || mouseKey == VK_MBUTTON)
-	{
-		m_mouseHotKey.key = mouseKey;
+	m_mouseHotKey.key = mouseKey;
 
-		int ctrlKey = GetPrivateProfileInt(L"mouse", L"ctrl", 0, iniFilePath);
-		m_mouseHotKey.ctrl = (ctrlKey != 0);
+	int mouseCtrlKey = GetPrivateProfileInt(L"mouse", L"ctrl", 0, iniFilePath);
+	m_mouseHotKey.ctrl = (mouseCtrlKey != 0);
 
-		int altKey = GetPrivateProfileInt(L"mouse", L"alt", 0, iniFilePath);
-		m_mouseHotKey.alt = (altKey != 0);
+	int mouseAltKey = GetPrivateProfileInt(L"mouse", L"alt", 0, iniFilePath);
+	m_mouseHotKey.alt = (mouseAltKey != 0);
 
-		int shiftKey = GetPrivateProfileInt(L"mouse", L"shift", 0, iniFilePath);
-		m_mouseHotKey.shift = (shiftKey != 0);
-	}
+	int mouseShiftKey = GetPrivateProfileInt(L"mouse", L"shift", 0, iniFilePath);
+	m_mouseHotKey.shift = (mouseShiftKey != 0);
 
 	int keybdKey = GetPrivateProfileInt(L"keyboard", L"key", 0, iniFilePath);
-	if(keybdKey)
-	{
-		m_keybdHotKey.key = keybdKey;
+	m_keybdHotKey.key = keybdKey;
 
-		int ctrlKey = GetPrivateProfileInt(L"keyboard", L"ctrl", 0, iniFilePath);
-		m_keybdHotKey.ctrl = (ctrlKey != 0);
+	int keybdCtrlKey = GetPrivateProfileInt(L"keyboard", L"ctrl", 0, iniFilePath);
+	m_keybdHotKey.ctrl = (keybdCtrlKey != 0);
 
-		int altKey = GetPrivateProfileInt(L"keyboard", L"alt", 0, iniFilePath);
-		m_keybdHotKey.alt = (altKey != 0);
+	int keybdAltKey = GetPrivateProfileInt(L"keyboard", L"alt", 0, iniFilePath);
+	m_keybdHotKey.alt = (keybdAltKey != 0);
 
-		int shiftKey = GetPrivateProfileInt(L"keyboard", L"shift", 0, iniFilePath);
-		m_keybdHotKey.shift = (shiftKey != 0);
-	}
+	int keybdShiftKey = GetPrivateProfileInt(L"keyboard", L"shift", 0, iniFilePath);
+	m_keybdHotKey.shift = (keybdShiftKey != 0);
 
 	int autoCopySelection = GetPrivateProfileInt(L"config", L"auto_copy_selection", 0, iniFilePath);
 	m_autoCopySelection = autoCopySelection != 0;

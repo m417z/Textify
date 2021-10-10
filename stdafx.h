@@ -34,9 +34,9 @@ extern CAppModule _Module;
 #include <oleacc.h>
 #include <psapi.h>
 
-#include <memory>
-#include <vector>
+#include <optional>
 #include <unordered_set>
+#include <vector>
 
 #if defined _M_IX86
   #pragma comment(linker, "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='x86' publicKeyToken='6595b64144ccf1df' language='*'\"")

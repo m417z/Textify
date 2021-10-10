@@ -67,8 +67,8 @@ private:
 	void InitNotifyIconData();
 	void NotifyIconRightClickMenu();
 
-	std::unique_ptr<UserConfig> m_config;
-	std::unique_ptr<MouseGlobalHook> m_mouseGlobalHook;
+	std::optional<UserConfig> m_config;
+	std::optional<MouseGlobalHook> m_mouseGlobalHook;
 	UINT m_uTaskbarCreatedMsg = RegisterWindowMessage(L"TaskbarCreated");
 	UINT m_uTextfiyMsg = RegisterWindowMessage(L"Textify");
 	NOTIFYICONDATA m_notifyIconData = {};

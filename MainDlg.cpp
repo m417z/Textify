@@ -31,7 +31,7 @@ BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	keysComboWnd.AddString(L"Middle mouse button");
 
 	// Load and apply config.
-	m_config = std::make_unique<UserConfig>();
+	m_config.emplace();
 	InitMouseAndKeyboardHotKeys();
 	ConfigToGui();
 
@@ -160,7 +160,7 @@ void CMainDlg::OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl)
 	{
 		bool oldHideTrayIcon = m_config->m_hideTrayIcon;
 
-		m_config = std::make_unique<UserConfig>();
+		m_config.emplace();
 		UninitMouseAndKeyboardHotKeys();
 		InitMouseAndKeyboardHotKeys();
 		ConfigToGui();
@@ -261,19 +261,22 @@ LRESULT CMainDlg::OnExit(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void CMainDlg::InitMouseAndKeyboardHotKeys()
 {
-	_ATLTRY
+	if(m_config->m_mouseHotKey.key != 0)
 	{
-		const HotKey& mouseHotKey = m_config->m_mouseHotKey;
-		m_mouseGlobalHook = std::make_unique<MouseGlobalHook>(m_hWnd, UWM_MOUSEHOOKCLICKED,
-			mouseHotKey.key, mouseHotKey.ctrl, mouseHotKey.alt, mouseHotKey.shift,
-			m_config->m_excludedPrograms);
-	}
-	_ATLCATCH(e)
-	{
-		CString str = AtlGetErrorDescription(e);
-		MessageBox(
-			L"The following error has occurred during the initialization of Textify:\n" + str,
-			L"Textify mouse hotkey initialization error", MB_ICONERROR);
+		_ATLTRY
+		{
+			const HotKey & mouseHotKey = m_config->m_mouseHotKey;
+			m_mouseGlobalHook.emplace(m_hWnd, UWM_MOUSEHOOKCLICKED,
+				mouseHotKey.key, mouseHotKey.ctrl, mouseHotKey.alt, mouseHotKey.shift,
+				m_config->m_excludedPrograms);
+		}
+		_ATLCATCH(e)
+		{
+			CString str = AtlGetErrorDescription(e);
+			MessageBox(
+				L"The following error has occurred during the initialization of Textify:\n" + str,
+				L"Textify mouse hotkey initialization error", MB_ICONERROR);
+		}
 	}
 
 	if(m_config->m_keybdHotKey.key != 0)
@@ -345,7 +348,17 @@ void CMainDlg::ConfigToGui()
 	case VK_MBUTTON:
 		keysComboWnd.SetCurSel(2);
 		break;
+
+	default:
+		keysComboWnd.SetCurSel(-1);
+		break;
 	}
+
+	BOOL bHotkeyEnabled = mouseHotKey.key != 0;
+	CButton(GetDlgItem(IDC_CHECK_CTRL)).EnableWindow(bHotkeyEnabled);
+	CButton(GetDlgItem(IDC_CHECK_ALT)).EnableWindow(bHotkeyEnabled);
+	CButton(GetDlgItem(IDC_CHECK_SHIFT)).EnableWindow(bHotkeyEnabled);
+	keysComboWnd.EnableWindow(bHotkeyEnabled);
 
 	CButton(GetDlgItem(IDOK)).EnableWindow(FALSE);
 }
