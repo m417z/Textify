@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by Textify.rc
+// Microsoft Visual C++ 生成的包含文件。
+// 供 Textify.rc 使用
 //
 #define IDR_MAINFRAME                   128
 #define IDD_MAINDLG                     129

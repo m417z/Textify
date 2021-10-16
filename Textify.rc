@@ -13,11 +13,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// 中文(简体，中国) resources
 
-#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -67,16 +67,16 @@ CLASS "Textify"
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
-    CONTROL         "Textify v%s\n<a href=""https://rammichael.com/textify"">Homepage</a>",IDC_MAIN_SYSLINK,
+    CONTROL         "Textify v%s\n<a href=""https://rammichael.com/textify"">软件官网</a>",IDC_MAIN_SYSLINK,
                     "SysLink",WS_TABSTOP,35,7,87,16
-    GROUPBOX        "Mouse shortcut",IDC_STATIC,7,35,115,70
+    GROUPBOX        "激活方式",IDC_STATIC,7,35,115,70
     CONTROL         "&Ctrl",IDC_CHECK_CTRL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,49,27,10
     CONTROL         "Al&t",IDC_CHECK_ALT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,50,49,25,10
     CONTROL         "&Shift",IDC_CHECK_SHIFT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,83,49,31,10
     COMBOBOX        IDC_COMBO_KEYS,14,65,100,47,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    DEFPUSHBUTTON   "&Apply",IDOK,13,84,102,14
-    GROUPBOX        "Advanced",IDC_STATIC,7,113,115,35
-    PUSHBUTTON      "&More settings",IDC_SHOW_INI,13,127,102,14
+    DEFPUSHBUTTON   "应用(&A)",IDOK,13,84,102,14
+    GROUPBOX        "高级",IDC_STATIC,7,113,115,35
+    PUSHBUTTON      "更多设置(&M)",IDC_SHOW_INI,13,127,102,14
 END
 
 IDD_TEXTDLG DIALOGEX 0, 0, 120, 31
@@ -91,12 +91,12 @@ END
 
 IDD_SETTINGSDLG DIALOGEX 0, 0, 415, 250
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "More settings"
+CAPTION "高级设置"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     EDITTEXT        IDC_CONFIG_TEXT,7,7,401,214,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,304,229,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,358,229,50,14
+    DEFPUSHBUTTON   "保存",IDOK,304,229,50,14
+    PUSHBUTTON      "取消",IDCANCEL,358,229,50,14
 END
 
 
@@ -266,7 +266,7 @@ BEGIN
     ATL_IDS_MRU_FILE        "Open this document"
 END
 
-#endif    // English (United States) resources
+#endif    // 中文(简体，中国) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

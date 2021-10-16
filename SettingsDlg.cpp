@@ -52,7 +52,7 @@ void CSettingsDlg::OnOK(UINT uNotifyCode, int nID, CWindow wndCtl)
 void CSettingsDlg::OnCancel(UINT uNotifyCode, int nID, CWindow wndCtl)
 {
 	if(CButton(GetDlgItem(IDOK)).IsWindowEnabled() &&
-		MessageBox(L"Discard unsaved changes?", L"Please confirm", MB_ICONWARNING | MB_YESNO | MB_DEFBUTTON2) != IDYES)
+		MessageBox(L"放弃未保存的更改？", L"请确认", MB_ICONWARNING | MB_YESNO | MB_DEFBUTTON2) != IDYES)
 	{
 		return;
 	}
@@ -105,7 +105,7 @@ CString CSettingsDlg::LoadIniFile()
 	CA2W unicodeContents(utf8ContentsBuffer, CP_UTF8);
 	CString result = unicodeContents.m_psz;
 
-	const WCHAR* prefixToRemove = L"; After editing this configuration file,\r\n; Textify must be restarted to apply the changes.\r\n";
+	const WCHAR* prefixToRemove = L"; 编辑此配置文件后，\r\n; Textify 需要重新启动来应用更改。\r\n";
 	size_t prefixToRemoveLength = wcslen(prefixToRemove);
 	if(result.Left(prefixToRemoveLength) == prefixToRemove)
 	{

@@ -99,9 +99,9 @@ bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, in
 		if(errorMessage)
 		{
 			*errorMessage =
-				L"Could not execute command.\n"
+				L"无法运行命令。\n"
 				L"\n"
-				L"In order to use web links, you need to have a web browser (e.g. Google Chrome or Mozilla Firefox).";
+				L"为了打开超链接，您需要安装一个浏览器（例如 Chrome 或 Firefox）。";
 		}
 
 		return false;
@@ -263,7 +263,7 @@ namespace
 		if(!pShowModalBrowserHost)
 		{
 			if(errorMessage)
-				*errorMessage = L"Could not load WebApp.dll";
+				*errorMessage = L"无法加载 WebApp.dll";
 
 			return false;
 		}
@@ -271,7 +271,7 @@ namespace
 		if(!pShowModalBrowserHost(urlWithParam, SW_SHOWNORMAL, &rcWindow))
 		{
 			if(errorMessage)
-				*errorMessage = L"Could not show the browser applet";
+				*errorMessage = L"无法显示浏览器小程序";
 
 			return false;
 		}

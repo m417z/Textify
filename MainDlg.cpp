@@ -26,9 +26,9 @@ BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	SetDlgItemText(IDC_MAIN_SYSLINK, introText);
 
 	auto keysComboWnd = CComboBox(GetDlgItem(IDC_COMBO_KEYS));
-	keysComboWnd.AddString(L"Left mouse button");
-	keysComboWnd.AddString(L"Right mouse button");
-	keysComboWnd.AddString(L"Middle mouse button");
+	keysComboWnd.AddString(L"鼠标左键");
+	keysComboWnd.AddString(L"鼠标右键");
+	keysComboWnd.AddString(L"鼠标中键");
 
 	// Load and apply config.
 	m_config = std::make_unique<UserConfig>();
@@ -76,7 +76,7 @@ LRESULT CMainDlg::OnNotify(int idCtrl, LPNMHDR pnmh)
 		case NM_RETURN:
 			if((int)ShellExecute(m_hWnd, L"open", ((PNMLINK)pnmh)->item.szUrl, NULL, NULL, SW_SHOWNORMAL) <= 32)
 			{
-				CString str = L"An error occurred while trying to open the following website address:\n";
+				CString str = L"打开以下网址时出错:\n";
 				str += ((PNMLINK)pnmh)->item.szUrl;
 				MessageBox(str, NULL, MB_ICONHAND);
 			}
@@ -109,8 +109,8 @@ void CMainDlg::OnOK(UINT uNotifyCode, int nID, CWindow wndCtl)
 
 	if(!ctrlKey && !altKey && !shiftKey)
 	{
-		if(MessageBox(L"You are about to set a mouse shortcut without modifier keys.\n"
-			L"Are you sure that you'd like to proceed?", L"Please confirm", MB_ICONWARNING | MB_YESNO) != IDYES)
+		if(MessageBox(L"您设置了一个纯鼠标的激活方式。\n"
+			L"确定要继续吗？", L"请确定", MB_ICONWARNING | MB_YESNO) != IDYES)
 		{
 			return;
 		}
@@ -272,8 +272,8 @@ void CMainDlg::InitMouseAndKeyboardHotKeys()
 	{
 		CString str = AtlGetErrorDescription(e);
 		MessageBox(
-			L"The following error has occurred during the initialization of Textify:\n" + str,
-			L"Textify mouse hotkey initialization error", MB_ICONERROR);
+			L"Textify 初始化时出现以下错误:\n" + str,
+			L"Textify 鼠标激活方式初始化错误", MB_ICONERROR);
 	}
 
 	if(m_config->m_keybdHotKey.key != 0)
@@ -283,8 +283,8 @@ void CMainDlg::InitMouseAndKeyboardHotKeys()
 		{
 			CString str = AtlGetErrorDescription(HRESULT_FROM_WIN32(GetLastError()));
 			MessageBox(
-				L"The following error has occurred during the initialization of Textify:\n" + str,
-				L"Textify keyboard hotkey initialization error", MB_ICONERROR);
+				L"Textify 初始化时出现以下错误:\n" + str,
+				L"Textify 键盘激活方式初始化错误", MB_ICONERROR);
 		}
 	}
 }
@@ -369,9 +369,9 @@ void CMainDlg::NotifyIconRightClickMenu()
 	CMenu menu;
 	menu.CreatePopupMenu();
 
-	menu.AppendMenu(MF_STRING, RCMENU_SHOW, L"Textify");
+	menu.AppendMenu(MF_STRING, RCMENU_SHOW, L"设置");
 	menu.AppendMenu(MF_SEPARATOR);
-	menu.AppendMenu(MF_STRING, RCMENU_EXIT, L"Exit");
+	menu.AppendMenu(MF_STRING, RCMENU_EXIT, L"退出");
 
 	CPoint point;
 	GetCursorPos(&point);
