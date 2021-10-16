@@ -1,5 +1,5 @@
-# Textify
+# Textify Simplified Chinese Translation 简体中文汉化版
 
-A small tool which allows to copy text from dialogs and controls which don’t allow it otherwise.
+从窗口控件复制文本的方便小工具。
 
-http://rammichael.com/textify
+原作网站：http://rammichael.com/textify
