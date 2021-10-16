@@ -1,4 +1,5 @@
-# Textify Simplified Chinese Translation 简体中文汉化版
+# Textify 汉化版
+### Simplified Chinese Translated Version of Textify
 
 从窗口控件复制文本的方便小工具。
 
