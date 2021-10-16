@@ -126,7 +126,7 @@ void CTextDlg::OnCommand(UINT uNotifyCode, int nID, CWindow wndCtl)
 
 		if(!succeeded)
 		{
-			MessageBox(errorMessage, L"Textify error", MB_ICONERROR);
+			MessageBox(errorMessage, L"Textify 错误", MB_ICONERROR);
 		}
 
 		EndDialog(0);
@@ -295,7 +295,7 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 	strText.Replace(L"$", L" $");
 	strText.Replace(L"\\", L" \\");
 
-	CSize defTextSize = GetEditControlTextSize(editWnd, L"(no text could be retrieved)");
+	CSize defTextSize = GetEditControlTextSize(editWnd, L"（无法检索到任何文本）");
 	CSize defTextSizeClient = TextSizeToEditClientSize(editWnd, defTextSize);
 
 	int nMaxClientWidth = defTextSizeClient.cx > rcAccObject.Width() ? defTextSizeClient.cx : rcAccObject.Width();
@@ -458,7 +458,7 @@ namespace
 {
 	void GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes)
 	{
-		outString = L"(no text could be retrieved)";
+		outString = L"（无法检索到任何文本）";
 		outRc = CRect{ pt, CSize{ 0, 0 } };
 		outIndexes = std::vector<int>();
 

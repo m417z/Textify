@@ -102,7 +102,8 @@ CString CSettingsDlg::LoadIniFile()
 	utf8ContentsBuffer[fileSize] = '\0';
 	utf8Contents.ReleaseBuffer(fileSize + 1);
 
-	CA2W unicodeContents(utf8ContentsBuffer, CP_UTF8);
+	CA2W unicodeContents(utf8ContentsBuffer, CP_ACP);// Force ANSI to fix UTF8 Chinese messy codes in UserConfig.cpp, then the ini file should also be ANSI.
+	//CA2W unicodeContents(utf8ContentsBuffer, CP_UTF8);
 	CString result = unicodeContents.m_psz;
 
 	const WCHAR* prefixToRemove = L"; 编辑此配置文件后，\r\n; Textify 需要重新启动来应用更改。\r\n";
