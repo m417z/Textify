@@ -42,6 +42,12 @@
     <ClCompile Include="SettingsDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="update.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="async_internet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -62,9 +68,6 @@
     <ClInclude Include="UserConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="wow64ext\internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="URLEncode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -72,6 +75,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SettingsDlg.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="update.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="version.h">

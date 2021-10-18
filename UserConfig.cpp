@@ -37,6 +37,9 @@ bool UserConfig::LoadFromIniFile()
 	int keybdShiftKey = GetPrivateProfileInt(L"keyboard", L"shift", 0, iniFilePath);
 	m_keybdHotKey.shift = (keybdShiftKey != 0);
 
+	int checkForUpdates = GetPrivateProfileInt(L"config", L"check_for_updates", 0, iniFilePath);
+	m_checkForUpdates = checkForUpdates != 0;
+
 	int autoCopySelection = GetPrivateProfileInt(L"config", L"auto_copy_selection", 0, iniFilePath);
 	m_autoCopySelection = autoCopySelection != 0;
 

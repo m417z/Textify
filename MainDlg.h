@@ -13,6 +13,7 @@ public:
 		UWM_MOUSEHOOKCLICKED = WM_APP,
 		UWM_NOTIFYICON,
 		UWM_BRING_TO_FRONT,
+		UWM_UPDATE_CHECKED,
 		UWM_EXIT,
 	};
 
@@ -22,12 +23,18 @@ public:
 		RCMENU_EXIT,
 	};
 
+	enum
+	{
+		TIMER_UPDATE_CHECK = 1,
+	};
+
 	BEGIN_MSG_MAP_EX(CMainDlg)
 		MSG_WM_INITDIALOG(OnInitDialog)
 		MSG_WM_DESTROY(OnDestroy)
 		MSG_WM_WINDOWPOSCHANGING(OnWindowPosChanging)
 		MSG_WM_NOTIFY(OnNotify)
 		MSG_WM_HOTKEY(OnHotKey)
+		MSG_WM_TIMER(OnTimer)
 		COMMAND_ID_HANDLER_EX(IDOK, OnOK)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnCancel)
 		COMMAND_ID_HANDLER_EX(IDC_SHOW_INI, OnShowIni)
@@ -40,6 +47,7 @@ public:
 		MESSAGE_HANDLER_EX(m_uTextfiyMsg, OnCustomTextifyMsg)
 		MESSAGE_HANDLER_EX(UWM_NOTIFYICON, OnNotifyIcon)
 		MESSAGE_HANDLER_EX(UWM_BRING_TO_FRONT, OnBringToFront)
+		MESSAGE_HANDLER_EX(UWM_UPDATE_CHECKED, OnUpdateChecked)
 		MESSAGE_HANDLER_EX(UWM_EXIT, OnExit)
 	END_MSG_MAP()
 
@@ -48,6 +56,7 @@ public:
 	void OnWindowPosChanging(LPWINDOWPOS lpWndPos);
 	LRESULT OnNotify(int idCtrl, LPNMHDR pnmh);
 	void OnHotKey(int nHotKeyID, UINT uModifiers, UINT uVirtKey);
+	void OnTimer(UINT_PTR nIDEvent);
 	void OnOK(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnCancel(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl);
@@ -57,6 +66,7 @@ public:
 	LRESULT OnCustomTextifyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnNotifyIcon(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnBringToFront(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	LRESULT OnUpdateChecked(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnExit(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
@@ -66,6 +76,7 @@ private:
 	void ConfigToGui();
 	void InitNotifyIconData();
 	void NotifyIconRightClickMenu();
+	void MyEndDialog();
 
 	std::optional<UserConfig> m_config;
 	std::optional<MouseGlobalHook> m_mouseGlobalHook;
@@ -74,4 +85,6 @@ private:
 	NOTIFYICONDATA m_notifyIconData = {};
 	bool m_hideDialog;
 	bool m_registeredHotKey = false;
+	bool m_checkingForUpdates = false;
+	bool m_closeWhenUpdateCheckDone = false;
 };

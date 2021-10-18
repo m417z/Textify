@@ -4,6 +4,7 @@
 #include "MainDlg.h"
 #include "TextDlg.h"
 #include "SettingsDlg.h"
+#include "update.h"
 #include "version.h"
 
 BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
@@ -43,6 +44,12 @@ BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 		Shell_NotifyIcon(NIM_ADD, &m_notifyIconData);
 	}
 
+	// Start timer to check for updates.
+	if(m_config->m_checkForUpdates)
+	{
+		SetTimer(TIMER_UPDATE_CHECK, 1000 * 10, NULL); // 10sec
+	}
+
 	return TRUE;
 }
 
@@ -53,6 +60,11 @@ void CMainDlg::OnDestroy()
 	if(!m_config->m_hideTrayIcon)
 	{
 		Shell_NotifyIcon(NIM_DELETE, &m_notifyIconData);
+	}
+
+	if(m_config->m_checkForUpdates)
+	{
+		KillTimer(TIMER_UPDATE_CHECK);
 	}
 }
 
@@ -98,6 +110,31 @@ void CMainDlg::OnHotKey(int nHotKeyID, UINT uModifiers, UINT uVirtKey)
 
 		CTextDlg dlgText(m_config->m_webButtonInfos, m_config->m_autoCopySelection, m_config->m_unicodeSpacesToAscii);
 		dlgText.DoModal(NULL, reinterpret_cast<LPARAM>(&pt));
+	}
+}
+
+void CMainDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	if(nIDEvent == TIMER_UPDATE_CHECK)
+	{
+		KillTimer(TIMER_UPDATE_CHECK);
+
+		if(UpdateCheckInit(m_hWnd, UWM_UPDATE_CHECKED))
+		{
+			if(UpdateCheckQueue())
+			{
+				m_checkingForUpdates = true;
+			}
+			else
+			{
+				UpdateCheckCleanup();
+			}
+		}
+
+		if(!m_checkingForUpdates)
+		{
+			SetTimer(TIMER_UPDATE_CHECK, 1000 * 60 * 60, NULL); // 1h
+		}
 	}
 }
 
@@ -158,6 +195,7 @@ void CMainDlg::OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl)
 	INT_PTR nRet = settingsDlg.DoModal();
 	if(nRet == IDOK)
 	{
+		bool oldCheckForUpdates = m_config->m_checkForUpdates;
 		bool oldHideTrayIcon = m_config->m_hideTrayIcon;
 
 		m_config.emplace();
@@ -165,10 +203,24 @@ void CMainDlg::OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl)
 		InitMouseAndKeyboardHotKeys();
 		ConfigToGui();
 
+		bool newCheckForUpdates = m_config->m_checkForUpdates;
 		bool newHideTrayIcon = m_config->m_hideTrayIcon;
+
 		if(newHideTrayIcon != oldHideTrayIcon)
 		{
 			Shell_NotifyIcon(newHideTrayIcon ? NIM_DELETE : NIM_ADD, &m_notifyIconData);
+		}
+
+		if(newCheckForUpdates != oldCheckForUpdates && !m_checkingForUpdates)
+		{
+			if(newCheckForUpdates)
+			{
+				SetTimer(TIMER_UPDATE_CHECK, 1000 * 10, NULL); // 10sec
+			}
+			else
+			{
+				KillTimer(TIMER_UPDATE_CHECK);
+			}
 		}
 	}
 }
@@ -210,7 +262,7 @@ LRESULT CMainDlg::OnCustomTextifyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	switch(lParam)
 	{
 	case 1:
-		EndDialog(0);
+		MyEndDialog();
 		break;
 	}
 
@@ -253,9 +305,44 @@ LRESULT CMainDlg::OnBringToFront(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
+LRESULT CMainDlg::OnUpdateChecked(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	UpdateCheckCleanup();
+
+	if(m_config->m_checkForUpdates)
+	{
+		if(lParam == ERROR_SUCCESS)
+		{
+			DWORD dwUpdateVersion = UpdateCheckGetVersionLong();
+			if(dwUpdateVersion && dwUpdateVersion > VER_FILE_VERSION_LONG)
+			{
+				HWND hPopup = IsWindowEnabled() ? m_hWnd : GetLastActivePopup();
+				UpdateTaskDialog(hPopup, UpdateCheckGetVersion());
+			}
+
+			UpdateCheckFreeVersion();
+
+			SetTimer(TIMER_UPDATE_CHECK, 1000 * 60 * 60 * 24, NULL); // 24h
+		}
+		else
+		{
+			SetTimer(TIMER_UPDATE_CHECK, 1000 * 60 * 60, NULL); // 1h
+		}
+	}
+
+	m_checkingForUpdates = false;
+
+	if(m_closeWhenUpdateCheckDone)
+	{
+		EndDialog(0);
+	}
+
+	return 0;
+}
+
 LRESULT CMainDlg::OnExit(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	EndDialog(0);
+	MyEndDialog();
 	return 0;
 }
 
@@ -397,7 +484,20 @@ void CMainDlg::NotifyIconRightClickMenu()
 		break;
 
 	case RCMENU_EXIT:
-		EndDialog(0);
+		MyEndDialog();
 		break;
+	}
+}
+
+void CMainDlg::MyEndDialog()
+{
+	if(m_checkingForUpdates)
+	{
+		UpdateCheckAbort();
+		m_closeWhenUpdateCheckDone = true;
+	}
+	else
+	{
+		EndDialog(0);
 	}
 }

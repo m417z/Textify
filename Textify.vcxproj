@@ -54,7 +54,7 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;PSAPI_VERSION=1;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;PSAPI_VERSION=1;$(PreprocessorDefinitions);_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
@@ -62,7 +62,7 @@
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>oleacc.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>oleacc.lib;psapi.lib;wininet.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ResourceCompile>
       <Culture>0x0409</Culture>
@@ -92,14 +92,14 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <ExceptionHandling>Sync</ExceptionHandling>
       <DebugInformationFormat />
-      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;PSAPI_VERSION=1;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;STRICT;PSAPI_VERSION=1;$(PreprocessorDefinitions);NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnableEnhancedInstructionSet>NoExtensions</EnableEnhancedInstructionSet>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
-      <AdditionalDependencies>oleacc.lib;psapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>oleacc.lib;psapi.lib;wininet.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
     <ResourceCompile>
@@ -124,6 +124,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="async_internet.cpp" />
     <ClCompile Include="MainDlg.cpp" />
     <ClCompile Include="MouseGlobalHook.cpp" />
     <ClCompile Include="SettingsDlg.cpp" />
@@ -133,6 +134,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TextDlg.cpp" />
+    <ClCompile Include="update.cpp" />
     <ClCompile Include="URLEncode.cpp" />
     <ClCompile Include="UserConfig.cpp" />
     <ClCompile Include="WebAppLaunch.cpp" />
@@ -144,6 +146,7 @@
     <ClInclude Include="SettingsDlg.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="TextDlg.h" />
+    <ClInclude Include="update.h" />
     <ClInclude Include="URLEncode.h" />
     <ClInclude Include="UserConfig.h" />
     <ClInclude Include="version.h" />
