@@ -93,24 +93,53 @@ CString CSettingsDlg::LoadIniFile()
 	ATLENSURE_RETURN_VAL(SUCCEEDED(hr), L"");
 
 	int fileSize = (int)fileSizeUlonglong;
+	int bytesToRead = fileSize;
 
-	CStringA utf8Contents;
-	CHAR* utf8ContentsBuffer = utf8Contents.GetBuffer(fileSize + 1);
-	hr = file.Read(utf8ContentsBuffer, fileSize);
-	ATLENSURE_RETURN_VAL(SUCCEEDED(hr), L"");
+	bool unicode = false;
 
-	utf8ContentsBuffer[fileSize] = '\0';
-	utf8Contents.ReleaseBuffer(fileSize + 1);
-
-	CA2W unicodeContents(utf8ContentsBuffer, CP_UTF8);
-	CString result = unicodeContents.m_psz;
-
-	const WCHAR* prefixToRemove = L"; After editing this configuration file,\r\n; Textify must be restarted to apply the changes.\r\n";
-	size_t prefixToRemoveLength = wcslen(prefixToRemove);
-	if(result.Left(prefixToRemoveLength) == prefixToRemove)
+	if(fileSize >= 2 && fileSize % 2 == 0)
 	{
-		result = result.Right(result.GetLength() - prefixToRemoveLength);
-		result.TrimLeft();
+		BYTE twoBytes[2];
+		hr = file.Read(twoBytes, 2);
+		ATLENSURE_RETURN_VAL(SUCCEEDED(hr), L"");
+
+		// UTF16LE BOM.
+		if(twoBytes[0] == 0xFF && twoBytes[1] == 0xFE)
+		{
+			bytesToRead -= 2; // skip BOM
+			unicode = true;
+		}
+		else
+		{
+			file.Seek(0, FILE_BEGIN);
+		}
+	}
+
+	if(bytesToRead == 0)
+		return L"";
+
+	CString result;
+
+	if(unicode)
+	{
+		int charsToRead = bytesToRead / sizeof(WCHAR);
+		WCHAR* buffer = result.GetBuffer(charsToRead);
+		hr = file.Read(buffer, bytesToRead);
+		ATLENSURE_RETURN_VAL(SUCCEEDED(hr), L"");
+
+		result.ReleaseBuffer(charsToRead);
+	}
+	else
+	{
+		CStringA ansiContents;
+		char* buffer = ansiContents.GetBuffer(bytesToRead);
+		hr = file.Read(buffer, bytesToRead);
+		ATLENSURE_RETURN_VAL(SUCCEEDED(hr), L"");
+
+		ansiContents.ReleaseBuffer(bytesToRead);
+
+		CA2W unicodeContents(buffer, CP_ACP);
+		result = unicodeContents.m_psz;
 	}
 
 	return result;
@@ -126,9 +155,11 @@ bool CSettingsDlg::SaveIniFile(CString newFileContents)
 	hr = file.Create(iniFilePath, GENERIC_WRITE, FILE_SHARE_READ, CREATE_ALWAYS);
 	ATLENSURE_RETURN_VAL(SUCCEEDED(hr), false);
 
-	CW2A utf8Contents(newFileContents, CP_UTF8);
+	// UTF16LE BOM.
+	hr = file.Write("\xFF\xFE", 2);
+	ATLENSURE_RETURN_VAL(SUCCEEDED(hr), false);
 
-	hr = file.Write(utf8Contents.m_psz, strlen(utf8Contents.m_psz));
+	hr = file.Write(newFileContents.GetString(), newFileContents.GetLength() * sizeof(WCHAR));
 	ATLENSURE_RETURN_VAL(SUCCEEDED(hr), false);
 
 	return true;
