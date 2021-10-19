@@ -71,7 +71,7 @@ public:
 
 private:
 	void ApplyUiLanguage();
-	void InitMouseAndKeyboardHotKeys();
+	void ApplyMouseAndKeyboardHotKeys();
 	void UninitMouseAndKeyboardHotKeys();
 	bool RegisterConfiguredKeybdHotKey(const HotKey& keybdHotKey);
 	void ConfigToGui();

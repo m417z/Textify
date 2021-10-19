@@ -23,7 +23,7 @@ BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	// Load and apply config.
 	m_config.emplace();
 	ApplyUiLanguage();
-	InitMouseAndKeyboardHotKeys();
+	ApplyMouseAndKeyboardHotKeys();
 	ConfigToGui();
 
 	// Init and show tray icon.
@@ -179,8 +179,7 @@ void CMainDlg::OnOK(UINT uNotifyCode, int nID, CWindow wndCtl)
 
 	m_config->SaveToIniFile();
 
-	m_mouseGlobalHook->SetNewHotkey(mouseKey, ctrlKey, altKey, shiftKey);
-	m_mouseGlobalHook->SetNewExcludedPrograms(m_config->m_excludedPrograms);
+	ApplyMouseAndKeyboardHotKeys();
 
 	CButton(GetDlgItem(IDOK)).EnableWindow(FALSE);
 }
@@ -201,9 +200,6 @@ void CMainDlg::OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl)
 		bool oldHideTrayIcon = m_config->m_hideTrayIcon;
 
 		m_config.emplace();
-		UninitMouseAndKeyboardHotKeys();
-		InitMouseAndKeyboardHotKeys();
-		ConfigToGui();
 
 		LANGID newUiLanguage = m_config->m_uiLanguage;
 		bool newCheckForUpdates = m_config->m_checkForUpdates;
@@ -213,6 +209,9 @@ void CMainDlg::OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl)
 		{
 			ApplyUiLanguage();
 		}
+
+		ApplyMouseAndKeyboardHotKeys();
+		ConfigToGui();
 
 		if(newHideTrayIcon != oldHideTrayIcon)
 		{
@@ -433,7 +432,7 @@ void CMainDlg::ApplyUiLanguage()
 	SetDlgItemText(IDC_SHOW_INI, str);
 }
 
-void CMainDlg::InitMouseAndKeyboardHotKeys()
+void CMainDlg::ApplyMouseAndKeyboardHotKeys()
 {
 	if(m_config->m_mouseHotKey.key != 0)
 	{
@@ -452,8 +451,12 @@ void CMainDlg::InitMouseAndKeyboardHotKeys()
 				L"Textify mouse hotkey initialization error", MB_ICONERROR);
 		}
 	}
+	else
+	{
+		m_mouseGlobalHook.reset();
+	}
 
-	if(m_config->m_keybdHotKey.key != 0)
+	if(m_config->m_keybdHotKey.key != 0 && !m_registeredHotKey)
 	{
 		m_registeredHotKey = RegisterConfiguredKeybdHotKey(m_config->m_keybdHotKey);
 		if(!m_registeredHotKey)
@@ -464,12 +467,20 @@ void CMainDlg::InitMouseAndKeyboardHotKeys()
 				L"Textify keyboard hotkey initialization error", MB_ICONERROR);
 		}
 	}
+	else if(m_config->m_keybdHotKey.key == 0 && m_registeredHotKey)
+	{
+		::UnregisterHotKey(m_hWnd, 1);
+		m_registeredHotKey = false;
+	}
 }
 
 void CMainDlg::UninitMouseAndKeyboardHotKeys()
 {
 	if(m_registeredHotKey)
+	{
 		::UnregisterHotKey(m_hWnd, 1);
+		m_registeredHotKey = false;
+	}
 
 	m_mouseGlobalHook.reset();
 }
@@ -527,12 +538,6 @@ void CMainDlg::ConfigToGui()
 		keysComboWnd.SetCurSel(-1);
 		break;
 	}
-
-	BOOL bHotkeyEnabled = mouseHotKey.key != 0;
-	CButton(GetDlgItem(IDC_CHECK_CTRL)).EnableWindow(bHotkeyEnabled);
-	CButton(GetDlgItem(IDC_CHECK_ALT)).EnableWindow(bHotkeyEnabled);
-	CButton(GetDlgItem(IDC_CHECK_SHIFT)).EnableWindow(bHotkeyEnabled);
-	keysComboWnd.EnableWindow(bHotkeyEnabled);
 
 	CButton(GetDlgItem(IDOK)).EnableWindow(FALSE);
 }

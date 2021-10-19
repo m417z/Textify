@@ -47,21 +47,6 @@ MouseGlobalHook::~MouseGlobalHook()
 	m_pThis = NULL;
 }
 
-void MouseGlobalHook::SetNewHotkey(int key, bool ctrl, bool alt, bool shift)
-{
-	// Note: the change is not atomic, but that's probably good enough.
-	m_mouseKey = key;
-	m_ctrlKey = ctrl;
-	m_altKey = alt;
-	m_shiftKey = shift;
-}
-
-void MouseGlobalHook::SetNewExcludedPrograms(std::vector<CString> excludedPrograms)
-{
-	// Note: the change is not atomic, but that's probably good enough.
-	m_excludedPrograms = std::move(excludedPrograms);
-}
-
 DWORD WINAPI MouseGlobalHook::MouseHookThreadProxy(void* pParameter)
 {
 	auto pThis = reinterpret_cast<MouseGlobalHook*>(pParameter);

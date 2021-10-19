@@ -8,9 +8,6 @@ public:
 		std::vector<CString> excludedPrograms);
 	~MouseGlobalHook();
 
-	void SetNewHotkey(int key, bool ctrl, bool alt, bool shift);
-	void SetNewExcludedPrograms(std::vector<CString> excludedPrograms);
-
 private:
 	static DWORD WINAPI MouseHookThreadProxy(void* pParameter);
 	DWORD MouseHookThread();
