@@ -26,11 +26,6 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	CRect rcAccObject;
 	GetAccessibleInfoFromPoint(ptEvent, wndAcc, strText, rcAccObject, m_editIndexes);
 
-	if(m_unicodeSpacesToAscii)
-	{
-		UnicodeSpacesToAscii(strText);
-	}
-
 	// Check whether the target window is another TextDlg.
 	if(wndAcc)
 	{
@@ -60,11 +55,24 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 
 	InitWebAppButtons();
 
+	CString strDefaultText;
+	strDefaultText.LoadString(IDS_DEFAULT_TEXT);
+
+	if(m_unicodeSpacesToAscii)
+	{
+		UnicodeSpacesToAscii(strText);
+	}
+
+	if(strText.IsEmpty())
+	{
+		strText = strDefaultText;
+	}
+
 	CEdit editWnd = GetDlgItem(IDC_EDIT);
 	editWnd.SetLimitText(0);
 	editWnd.SetWindowText(strText);
 
-	AdjustWindowLocationAndSize(ptEvent, rcAccObject, strText);
+	AdjustWindowLocationAndSize(ptEvent, rcAccObject, strText, strDefaultText);
 
 	m_lastSelStart = 0;
 	m_lastSelEnd = strText.GetLength();
@@ -120,13 +128,20 @@ void CTextDlg::OnCommand(UINT uNotifyCode, int nID, CWindow wndCtl)
 		ShowWindow(SW_HIDE);
 
 		const auto& buttonInfo = m_webButtonInfos[buttonIndex];
-		CString errorMessage;
 		bool succeeded = CommandLaunch(buttonInfo.command, selectedText,
-			buttonInfo.width, buttonInfo.height, &errorMessage);
+			buttonInfo.width, buttonInfo.height);
 
 		if(!succeeded)
 		{
-			MessageBox(errorMessage, L"Textify error", MB_ICONERROR);
+			CString title;
+			title.LoadString(IDS_ERROR);
+
+			CString text;
+			text.LoadString(IDS_ERROR_EXECUTE);
+			text += L"\n";
+			text += buttonInfo.command;
+
+			MessageBox(text, title, MB_ICONERROR);
 		}
 
 		EndDialog(0);
@@ -276,7 +291,7 @@ void CTextDlg::InitWebAppButtons()
 	}
 }
 
-void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CString strText)
+void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CString strText, CString strDefaultText)
 {
 	CEdit editWnd = GetDlgItem(IDC_EDIT);
 
@@ -295,7 +310,7 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 	strText.Replace(L"$", L" $");
 	strText.Replace(L"\\", L" \\");
 
-	CSize defTextSize = GetEditControlTextSize(editWnd, L"(no text could be retrieved)");
+	CSize defTextSize = GetEditControlTextSize(editWnd, strDefaultText);
 	CSize defTextSizeClient = TextSizeToEditClientSize(editWnd, defTextSize);
 
 	int nMaxClientWidth = defTextSizeClient.cx > rcAccObject.Width() ? defTextSizeClient.cx : rcAccObject.Width();
@@ -458,7 +473,7 @@ namespace
 {
 	void GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes)
 	{
-		outString = L"(no text could be retrieved)";
+		outString.Empty();
 		outRc = CRect{ pt, CSize{ 0, 0 } };
 		outIndexes = std::vector<int>();
 

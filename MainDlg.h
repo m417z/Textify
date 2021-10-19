@@ -70,6 +70,7 @@ public:
 	LRESULT OnExit(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
+	void ApplyUiLanguage();
 	void InitMouseAndKeyboardHotKeys();
 	void UninitMouseAndKeyboardHotKeys();
 	bool RegisterConfiguredKeybdHotKey(const HotKey& keybdHotKey);

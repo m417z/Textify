@@ -51,6 +51,6 @@ private:
 	bool m_showingModalBrowserHost = false;
 
 	void InitWebAppButtons();
-	void AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CString strText);
+	void AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CString strText, CString strDefaultText);
 	void OnSelectionMaybeChanged();
 };

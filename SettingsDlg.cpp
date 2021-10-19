@@ -17,6 +17,15 @@ BOOL CSettingsDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	m_fontConfigText = fontAttributes.CreateFontIndirect();
 	configTextCtrl.SetFont(m_fontConfigText);
 
+	// Load strings.
+	CString str;
+	str.LoadString(IDS_SETTINGSDLG_TITLE);
+	SetWindowText(str);
+	str.LoadString(IDS_SETTINGSDLG_OK);
+	SetDlgItemText(IDOK, str);
+	str.LoadString(IDS_SETTINGSDLG_CANCEL);
+	SetDlgItemText(IDCANCEL, str);
+
 	// Load ini file.
 	CEdit configText = CEdit(GetDlgItem(IDC_CONFIG_TEXT));
 	configText.SetWindowText(LoadIniFile());
@@ -51,8 +60,14 @@ void CSettingsDlg::OnOK(UINT uNotifyCode, int nID, CWindow wndCtl)
 
 void CSettingsDlg::OnCancel(UINT uNotifyCode, int nID, CWindow wndCtl)
 {
+	CString title;
+	title.LoadString(IDS_SETTINGSDLG_WARNING_DISCARD_TITLE);
+
+	CString text;
+	text.LoadString(IDS_SETTINGSDLG_WARNING_DISCARD_TEXT);
+
 	if(CButton(GetDlgItem(IDOK)).IsWindowEnabled() &&
-		MessageBox(L"Discard unsaved changes?", L"Please confirm", MB_ICONWARNING | MB_YESNO | MB_DEFBUTTON2) != IDYES)
+		MessageBox(text, title, MB_ICONWARNING | MB_YESNO | MB_DEFBUTTON2) != IDYES)
 	{
 		return;
 	}

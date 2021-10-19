@@ -18,10 +18,10 @@ namespace
 
 	PopupBrowserType DetectPopupBrowserType();
 	bool ExecuteCommand(const WCHAR* command);
-	bool OpenWebApp(const WCHAR* urlWithParam, int width, int height, CString* errorMessage);
+	bool OpenWebApp(const WCHAR* urlWithParam, int width, int height);
 }
 
-bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, int height, CString* errorMessage)
+bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, int height)
 {
 	PopupBrowserType popupBrowserType;
 	CString formattedCommand;
@@ -91,23 +91,10 @@ bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, in
 
 	if(popupBrowserType == PopupBrowserType::IeControl)
 	{
-		return OpenWebApp(formattedCommand, width, height, errorMessage);
+		return OpenWebApp(formattedCommand, width, height);
 	}
 
-	if(!ExecuteCommand(formattedCommand))
-	{
-		if(errorMessage)
-		{
-			*errorMessage =
-				L"Could not execute command.\n"
-				L"\n"
-				L"In order to use web links, you need to have a web browser (e.g. Google Chrome or Mozilla Firefox).";
-		}
-
-		return false;
-	}
-
-	return true;
+	return ExecuteCommand(formattedCommand);
 }
 
 namespace
@@ -188,7 +175,7 @@ namespace
 		return (int)hRet > 32;
 	}
 
-	bool OpenWebApp(const WCHAR* urlWithParam, int width, int height, CString* errorMessage)
+	bool OpenWebApp(const WCHAR* urlWithParam, int width, int height)
 	{
 		if(width <= 0 || height <= 0)
 		{
@@ -260,22 +247,7 @@ namespace
 			}
 		}
 
-		if(!pShowModalBrowserHost)
-		{
-			if(errorMessage)
-				*errorMessage = L"Could not load WebApp.dll";
-
-			return false;
-		}
-
-		if(!pShowModalBrowserHost(urlWithParam, SW_SHOWNORMAL, &rcWindow))
-		{
-			if(errorMessage)
-				*errorMessage = L"Could not show the browser applet";
-
-			return false;
-		}
-
-		return true;
+		return pShowModalBrowserHost &&
+			pShowModalBrowserHost(urlWithParam, SW_SHOWNORMAL, &rcWindow);
 	}
 }

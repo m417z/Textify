@@ -69,13 +69,13 @@ BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,7,7,20,20
     CONTROL         "Textify v%s\n<a href=""https://rammichael.com/textify"">Homepage</a>",IDC_MAIN_SYSLINK,
                     "SysLink",WS_TABSTOP,35,7,87,16
-    GROUPBOX        "Mouse shortcut",IDC_STATIC,7,35,115,70
+    GROUPBOX        "Mouse shortcut",IDC_MOUSE_SHORTCUT,7,35,115,70
     CONTROL         "&Ctrl",IDC_CHECK_CTRL,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,49,27,10
     CONTROL         "Al&t",IDC_CHECK_ALT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,50,49,25,10
     CONTROL         "&Shift",IDC_CHECK_SHIFT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,83,49,31,10
     COMBOBOX        IDC_COMBO_KEYS,14,65,100,47,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     DEFPUSHBUTTON   "&Apply",IDOK,13,84,102,14
-    GROUPBOX        "Advanced",IDC_STATIC,7,113,115,35
+    GROUPBOX        "Advanced",IDC_ADVANCED,7,113,115,35
     PUSHBUTTON      "&More settings",IDC_SHOW_INI,13,127,102,14
 END
 
@@ -91,7 +91,7 @@ END
 
 IDD_SETTINGSDLG DIALOGEX 0, 0, 415, 250
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "More settings"
+CAPTION "More Settings"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     EDITTEXT        IDC_CONFIG_TEXT,7,7,401,214,ES_MULTILINE | ES_AUTOVSCROLL | ES_AUTOHSCROLL | ES_WANTRETURN | WS_VSCROLL | WS_HSCROLL
@@ -135,30 +135,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Accelerator
-//
-
-IDR_MAINFRAME ACCELERATORS
-BEGIN
-    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL
-    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
-    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL
-    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL
-    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL
-    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL
-    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL
-    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL
-    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT
-    VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT
-    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL
-    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT
-    VK_F6,          ID_NEXT_PANE,           VIRTKEY 
-    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // AFX_DIALOG_LAYOUT
 //
 
@@ -185,85 +161,52 @@ END
 
 STRINGTABLE
 BEGIN
-    IDR_MAINFRAME           "Textify"
+    IDS_MAINDLG_TITLE       "Textify"
+    IDS_MAINDLG_HEADER      "Textify v%s"
+    IDS_MAINDLG_HOMEPAGE    "Homepage"
+    IDS_MAINDLG_MOUSE_SHORTCUT "Mouse shortcut"
+    IDS_MAINDLG_CTRL        "&Ctrl"
 END
 
 STRINGTABLE
 BEGIN
-    ID_FILE_NEW             "Create a new document\nNew"
-    ID_FILE_OPEN            "Open an existing document\nOpen"
-    ID_FILE_CLOSE           "Close the active document\nClose"
-    ID_FILE_SAVE            "Save the active document\nSave"
-    ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
-    ID_FILE_PAGE_SETUP      "Change the printing options\nPage Setup"
-    ID_FILE_PRINT_SETUP     "Change the printer and printing options\nPrint Setup"
-    ID_FILE_PRINT           "Print the active document\nPrint"
-    ID_FILE_PRINT_PREVIEW   "Display full pages\nPrint Preview"
+    IDS_MAINDLG_ALT         "Al&t"
+    IDS_MAINDLG_SHIFT       "&Shift"
+    IDS_MAINDLG_MOUSE_LEFT  "Left mouse button"
+    IDS_MAINDLG_MOUSE_RIGHT "Right mouse button"
+    IDS_MAINDLG_MOUSE_MIDDLE "Middle mouse button"
+    IDS_MAINDLG_APPLY       "&Apply"
+    IDS_MAINDLG_ADVANCED    "Advanced"
+    IDS_MAINDLG_MORE_SETTINGS "&More settings"
+    IDS_MAINDLG_WARNING_MODIFIER_TEXT 
+                            "You are about to set a mouse shortcut without modifier keys, are you sure that you'd like to proceed?"
+    IDS_MAINDLG_WARNING_MODIFIER_TITLE "Please Confirm"
+    IDS_SETTINGSDLG_TITLE   "More Settings"
+    IDS_SETTINGSDLG_OK      "OK"
+    IDS_SETTINGSDLG_CANCEL  "Cancel"
+    IDS_SETTINGSDLG_WARNING_DISCARD_TEXT "Discard unsaved changes?"
+    IDS_SETTINGSDLG_WARNING_DISCARD_TITLE "Please Confirm"
+    IDS_TRAY_TEXTIFY        "&Textify"
 END
 
 STRINGTABLE
 BEGIN
-    ID_APP_ABOUT            "Display program information, version number and copyright\nAbout"
-    ID_APP_EXIT             "Quit the application; prompts to save documents\nExit"
-END
-
-STRINGTABLE
-BEGIN
-    ID_NEXT_PANE            "Switch to the next window pane\nNext Pane"
-    ID_PREV_PANE            "Switch back to the previous window pane\nPrevious Pane"
-END
-
-STRINGTABLE
-BEGIN
-    ID_WINDOW_NEW           "Open another window for the active document\nNew Window"
-    ID_WINDOW_ARRANGE       "Arrange icons at the bottom of the window\nArrange Icons"
-    ID_WINDOW_CASCADE       "Arrange windows so they overlap\nCascade Windows"
-    ID_WINDOW_TILE_HORZ     "Arrange windows as non-overlapping tiles\nTile Windows"
-    ID_WINDOW_TILE_VERT     "Arrange windows as non-overlapping tiles\nTile Windows"
-    ID_WINDOW_SPLIT         "Split the active window into panes\nSplit"
-END
-
-STRINGTABLE
-BEGIN
-    ID_EDIT_CLEAR           "Erase the selection\nErase"
-    ID_EDIT_CLEAR_ALL       "Erase everything\nErase All"
-    ID_EDIT_COPY            "Copy the selection and put it on the Clipboard\nCopy"
-    ID_EDIT_CUT             "Cut the selection and put it on the Clipboard\nCut"
-    ID_EDIT_FIND            "Find the specified text\nFind"
-    ID_EDIT_PASTE           "Insert Clipboard contents\nPaste"
-    ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
-    ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
-    ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
-    ID_EDIT_UNDO            "Undo the last action\nUndo"
-    ID_EDIT_REDO            "Redo the previously undone action\nRedo"
-END
-
-STRINGTABLE
-BEGIN
-    ATL_IDS_SCSIZE          "Change the window size"
-    ATL_IDS_SCMOVE          "Change the window position"
-    ATL_IDS_SCMINIMIZE      "Reduce the window to an icon"
-    ATL_IDS_SCMAXIMIZE      "Enlarge the window to full size"
-    ATL_IDS_SCNEXTWINDOW    "Switch to the next document window"
-    ATL_IDS_SCPREVWINDOW    "Switch to the previous document window"
-    ATL_IDS_SCCLOSE         "Close the active window and prompts to save the documents"
-END
-
-STRINGTABLE
-BEGIN
-    ATL_IDS_SCRESTORE       "Restore the window to normal size"
-    ATL_IDS_SCTASKLIST      "Activate Task List"
-    ATL_IDS_MDICHILD        "Activate this window"
-END
-
-STRINGTABLE
-BEGIN
-    ATL_IDS_IDLEMESSAGE     "Ready"
-END
-
-STRINGTABLE
-BEGIN
-    ATL_IDS_MRU_FILE        "Open this document"
+    IDS_TRAY_EXIT           "E&xit"
+    IDS_UPDATE_TEXT         "A new version of Textify is available"
+    IDS_UPDATE_TITLE        "Textify Update"
+    IDS_UPDATE_VERSION_CURRENT "Current version"
+    IDS_UPDATE_VERSION_NEW  "New version"
+    IDS_UPDATE_CHANGELOG    "Changelog"
+    IDS_UPDATE_UPDATE       "&Update"
+    IDS_UPDATE_CLOSE        "&Close"
+    IDS_UPDATE_DOWNLOADING  "Downloading"
+    IDS_UPDATE_ABORT        "&Abort"
+    IDS_UPDATE_ERROR_DOWNLOAD 
+                            "Download failed, please check your Internet connection"
+    IDS_DEFAULT_TEXT        "(no text could be retrieved)"
+    IDS_ERROR               "Textify Error"
+    IDS_ERROR_OPEN_ADDRESS  "An error occurred while trying to open the following website address:"
+    IDS_ERROR_EXECUTE       "An error occurred while trying to execute the following command:"
 END
 
 #endif    // English (United States) resources

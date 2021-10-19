@@ -27,6 +27,7 @@ public:
 
 	HotKey m_mouseHotKey = HotKey{ VK_MBUTTON, false, false, true };
 	HotKey m_keybdHotKey = HotKey{ 'T', true, true, true };
+	LANGID m_uiLanguage = false;
 	bool m_checkForUpdates = true;
 	bool m_autoCopySelection = false;
 	bool m_hideTrayIcon = false;

@@ -13,41 +13,21 @@ bool UserConfig::LoadFromIniFile()
 	if(!iniFilePath)
 		return false;
 
-	int mouseKey = GetPrivateProfileInt(L"mouse", L"key", 0, iniFilePath);
-	m_mouseHotKey.key = mouseKey;
+	m_mouseHotKey.key = GetPrivateProfileInt(L"mouse", L"key", 0, iniFilePath);
+	m_mouseHotKey.ctrl = GetPrivateProfileInt(L"mouse", L"ctrl", 0, iniFilePath);
+	m_mouseHotKey.alt = GetPrivateProfileInt(L"mouse", L"alt", 0, iniFilePath);
+	m_mouseHotKey.shift = GetPrivateProfileInt(L"mouse", L"shift", 0, iniFilePath);
 
-	int mouseCtrlKey = GetPrivateProfileInt(L"mouse", L"ctrl", 0, iniFilePath);
-	m_mouseHotKey.ctrl = (mouseCtrlKey != 0);
+	m_keybdHotKey.key = GetPrivateProfileInt(L"keyboard", L"key", 0, iniFilePath);
+	m_keybdHotKey.ctrl = GetPrivateProfileInt(L"keyboard", L"ctrl", 0, iniFilePath);
+	m_keybdHotKey.alt = GetPrivateProfileInt(L"keyboard", L"alt", 0, iniFilePath);
+	m_keybdHotKey.shift = GetPrivateProfileInt(L"keyboard", L"shift", 0, iniFilePath);
 
-	int mouseAltKey = GetPrivateProfileInt(L"mouse", L"alt", 0, iniFilePath);
-	m_mouseHotKey.alt = (mouseAltKey != 0);
-
-	int mouseShiftKey = GetPrivateProfileInt(L"mouse", L"shift", 0, iniFilePath);
-	m_mouseHotKey.shift = (mouseShiftKey != 0);
-
-	int keybdKey = GetPrivateProfileInt(L"keyboard", L"key", 0, iniFilePath);
-	m_keybdHotKey.key = keybdKey;
-
-	int keybdCtrlKey = GetPrivateProfileInt(L"keyboard", L"ctrl", 0, iniFilePath);
-	m_keybdHotKey.ctrl = (keybdCtrlKey != 0);
-
-	int keybdAltKey = GetPrivateProfileInt(L"keyboard", L"alt", 0, iniFilePath);
-	m_keybdHotKey.alt = (keybdAltKey != 0);
-
-	int keybdShiftKey = GetPrivateProfileInt(L"keyboard", L"shift", 0, iniFilePath);
-	m_keybdHotKey.shift = (keybdShiftKey != 0);
-
-	int checkForUpdates = GetPrivateProfileInt(L"config", L"check_for_updates", 0, iniFilePath);
-	m_checkForUpdates = checkForUpdates != 0;
-
-	int autoCopySelection = GetPrivateProfileInt(L"config", L"auto_copy_selection", 0, iniFilePath);
-	m_autoCopySelection = autoCopySelection != 0;
-
-	int hideTrayIcon = GetPrivateProfileInt(L"config", L"hide_tray_icon", 0, iniFilePath);
-	m_hideTrayIcon = hideTrayIcon != 0;
-
-	int unicodeSpacesToAscii = GetPrivateProfileInt(L"config", L"unicode_spaces_to_ascii", 0, iniFilePath);
-	m_unicodeSpacesToAscii = unicodeSpacesToAscii != 0;
+	m_uiLanguage = static_cast<LANGID>(GetPrivateProfileInt(L"config", L"ui_language", 0, iniFilePath));
+	m_checkForUpdates = GetPrivateProfileInt(L"config", L"check_for_updates", 0, iniFilePath);
+	m_autoCopySelection = GetPrivateProfileInt(L"config", L"auto_copy_selection", 0, iniFilePath);
+	m_hideTrayIcon = GetPrivateProfileInt(L"config", L"hide_tray_icon", 0, iniFilePath);
+	m_unicodeSpacesToAscii = GetPrivateProfileInt(L"config", L"unicode_spaces_to_ascii", 0, iniFilePath);
 
 	for(int i = 1; ; i++)
 	{

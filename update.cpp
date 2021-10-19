@@ -176,17 +176,27 @@ void UpdateTaskDialog(HWND hWnd, char* pVersion)
 
 	if(!pTaskDialogIndirect)
 	{
-		if(MessageBox(hWnd,
-			L"A new version of Textify is available\nDownload?",
-			L"Textify Update",
-			MB_ICONINFORMATION | MB_YESNO) == IDYES)
+		CString title;
+		title.LoadString(IDS_UPDATE_TITLE);
+
+		CString text;
+		text.LoadString(IDS_UPDATE_TEXT);
+
+		if(MessageBox(hWnd, text, title, MB_ICONINFORMATION | MB_OKCANCEL) == IDOK)
 		{
-			if((int)(UINT_PTR)ShellExecute(hWnd, NULL, L"https://rammichael.com/textify", NULL, NULL, SW_SHOWNORMAL) <= 32)
+			const WCHAR* url = L"https://rammichael.com/textify";
+
+			if((int)(UINT_PTR)ShellExecute(hWnd, NULL, url, NULL, NULL, SW_SHOWNORMAL) <= 32)
 			{
-				MessageBox(hWnd,
-					L"Could not open link.\n\n"
-					L"In order to use web links, you need to have a web browser (e.g. Internet Explorer).",
-					NULL, MB_ICONHAND);
+				CString title;
+				title.LoadString(IDS_ERROR);
+
+				CString text;
+				text.LoadString(IDS_ERROR_OPEN_ADDRESS);
+				text += L"\n";
+				text += url;
+
+				MessageBox(hWnd, text, title, MB_ICONERROR);
 			}
 		}
 
@@ -197,33 +207,46 @@ void UpdateTaskDialog(HWND hWnd, char* pVersion)
 	TASKDIALOG_BUTTON tbButtons[2];
 	TASKDIALOG_BUTTON tbNewButtons[2];
 	UTASKDIALOGSTRUCT sUserStruct;
-	WCHAR* pTextFormat, * pText;
-	char* pChangelog;
-	WCHAR* pUnicodeChangelog;
-	int nUnicodeChangelogLen;
-	int i;
 
 	// Buttons params
+	CString strUpdate;
+	strUpdate.LoadString(IDS_UPDATE_UPDATE);
+
+	CString strClose;
+	strClose.LoadString(IDS_UPDATE_CLOSE);
+
 	tbButtons[0].nButtonID = IDOK;
-	tbButtons[0].pszButtonText = L"&Update";
+	tbButtons[0].pszButtonText = strUpdate;
 	tbButtons[1].nButtonID = IDCANCEL;
-	tbButtons[1].pszButtonText = L"&Close";
+	tbButtons[1].pszButtonText = strClose;
+
+	CString strDownloading;
+	strDownloading.LoadString(IDS_UPDATE_DOWNLOADING);
+
+	CString strAbort;
+	strAbort.LoadString(IDS_UPDATE_ABORT);
 
 	tbNewButtons[0].nButtonID = IDOK;
-	tbNewButtons[0].pszButtonText = L"Downloading";
+	tbNewButtons[0].pszButtonText = strDownloading;
 	tbNewButtons[1].nButtonID = IDCANCEL;
-	tbNewButtons[1].pszButtonText = L"&Abort";
+	tbNewButtons[1].pszButtonText = strAbort;
 
 	// Dialog params
+	CString strTitle;
+	strTitle.LoadString(IDS_UPDATE_TITLE);
+
+	CString strMainText;
+	strMainText.LoadString(IDS_UPDATE_TEXT);
+
 	ZeroMemory(&tdcTaskDialogConfig, sizeof(TASKDIALOGCONFIG));
 
 	tdcTaskDialogConfig.cbSize = sizeof(TASKDIALOGCONFIG);
 	tdcTaskDialogConfig.hwndParent = hWnd;
 	tdcTaskDialogConfig.hInstance = GetModuleHandle(NULL);
 	tdcTaskDialogConfig.dwFlags = TDF_ENABLE_HYPERLINKS | TDF_EXPAND_FOOTER_AREA | TDF_SIZE_TO_CONTENT;
-	tdcTaskDialogConfig.pszWindowTitle = L"Textify Update";
+	tdcTaskDialogConfig.pszWindowTitle = strTitle;
 	tdcTaskDialogConfig.pszMainIcon = MAKEINTRESOURCE(IDR_MAINFRAME);
-	tdcTaskDialogConfig.pszMainInstruction = L"A new version of Textify is available";
+	tdcTaskDialogConfig.pszMainInstruction = strMainText;
 	tdcTaskDialogConfig.cButtons = 2;
 	tdcTaskDialogConfig.pButtons = tbButtons;
 	tdcTaskDialogConfig.pfCallback = TaskDialogCallbackProc;
@@ -236,7 +259,7 @@ void UpdateTaskDialog(HWND hWnd, char* pVersion)
 	sUserStruct.pButtons = tbButtons;
 	sUserStruct.pNewButtons = tbNewButtons;
 
-	i = GetModuleFileName(NULL, sUserStruct.szSetupPath, MAX_PATH);
+	int i = GetModuleFileName(NULL, sUserStruct.szSetupPath, MAX_PATH);
 	while(i-- && sUserStruct.szSetupPath[i] != L'\\')
 		/* loop */;
 	sUserStruct.szSetupPath[i + 1] = L'\0';
@@ -250,49 +273,37 @@ void UpdateTaskDialog(HWND hWnd, char* pVersion)
 	tdcTaskDialogConfig.lpCallbackData = (LONG_PTR)&sUserStruct;
 
 	// Main text
-	pTextFormat = L"Current version: %s\nNew version: %S";
-
-	pText = (WCHAR*)HeapAlloc(GetProcessHeap(), 0,
-		(lstrlen(pTextFormat) + lstrlenA(pVersion) + (sizeof(VER_FILE_VERSION_STR) - 1) + 1) * sizeof(WCHAR));
-	if(pText)
+	CString strVersionInfoText;
 	{
-		wsprintf(pText, pTextFormat, VER_FILE_VERSION_WSTR, pVersion);
+		strVersionInfoText.LoadString(IDS_UPDATE_VERSION_CURRENT);
+		strVersionInfoText += L": " VER_FILE_VERSION_WSTR L"\n";
 
-		tdcTaskDialogConfig.pszContent = pText;
+		CString str;
+		str.LoadString(IDS_UPDATE_VERSION_NEW);
+		strVersionInfoText += str;
+		strVersionInfoText += L": ";
+		strVersionInfoText += pVersion;
 	}
-	else
-		tdcTaskDialogConfig.pszContent = L"(Allocation failed)";
+
+	tdcTaskDialogConfig.pszContent = strVersionInfoText;
 
 	// Changelog text
-	pChangelog = pVersion + lstrlenA(pVersion) + 1;
+	CString strChangelogTitle;
+	strChangelogTitle.LoadString(IDS_UPDATE_CHANGELOG);
 
+	CString strChangelog;
+	const char* pChangelog = pVersion + lstrlenA(pVersion) + 1;
 	if(*pChangelog != '\0')
 	{
-		nUnicodeChangelogLen = MultiByteToWideChar(CP_UTF8, 0, pChangelog, -1, NULL, 0);
+		CA2W unicodeChangelog(pChangelog, CP_UTF8);
+		strChangelog = unicodeChangelog.m_psz;
 
-		pUnicodeChangelog = (WCHAR*)HeapAlloc(GetProcessHeap(), 0, nUnicodeChangelogLen * sizeof(WCHAR));
-		if(pUnicodeChangelog)
-		{
-			MultiByteToWideChar(CP_UTF8, 0, pChangelog, -1, pUnicodeChangelog, nUnicodeChangelogLen);
-
-			tdcTaskDialogConfig.pszExpandedInformation = pUnicodeChangelog;
-		}
-		else
-			tdcTaskDialogConfig.pszExpandedInformation = L"(Allocation failed)";
-
-		tdcTaskDialogConfig.pszExpandedControlText = L"Changelog";
+		tdcTaskDialogConfig.pszExpandedControlText = strChangelogTitle;
+		tdcTaskDialogConfig.pszExpandedInformation = strChangelog;
 	}
-	else
-		pUnicodeChangelog = NULL;
 
 	// Show it
 	pTaskDialogIndirect(&tdcTaskDialogConfig, NULL, NULL, NULL);
-
-	if(pText)
-		HeapFree(GetProcessHeap(), 0, pText);
-
-	if(pUnicodeChangelog)
-		HeapFree(GetProcessHeap(), 0, pUnicodeChangelog);
 }
 
 static HRESULT CALLBACK TaskDialogCallbackProc(HWND hWnd, UINT uNotification, WPARAM wParam, LPARAM lParam, LONG_PTR dwRefData)
@@ -315,11 +326,15 @@ static HRESULT CALLBACK TaskDialogCallbackProc(HWND hWnd, UINT uNotification, WP
 	case TDN_HYPERLINK_CLICKED:
 		if((int)(UINT_PTR)ShellExecute(hWnd, NULL, (WCHAR*)lParam, NULL, NULL, SW_SHOWNORMAL) <= 32)
 		{
-			MessageBox(hWnd,
-				L"Could not open link.\n\n"
-				L"In order to use web links, you need to have a web browser (e.g. Internet Explorer). "
-				L"In order to use mail links, you need to have an email client (e.g. Windows Live Mail or Outlook).",
-				NULL, MB_ICONHAND);
+			CString title;
+			title.LoadString(IDS_ERROR);
+
+			CString text;
+			text.LoadString(IDS_ERROR_OPEN_ADDRESS);
+			text += L"\n";
+			text += (WCHAR*)lParam;
+
+			MessageBox(hWnd, text, title, MB_ICONERROR);
 		}
 		break;
 
@@ -328,7 +343,15 @@ static HRESULT CALLBACK TaskDialogCallbackProc(HWND hWnd, UINT uNotification, WP
 		{
 		case IDOK:
 			if(!UpdateQueue(hWnd, pUserStruct))
-				MessageBox(hWnd, L"Download failed, please check your internet connection", NULL, MB_ICONHAND);
+			{
+				CString title;
+				title.LoadString(IDS_ERROR);
+
+				CString text;
+				text.LoadString(IDS_UPDATE_ERROR_DOWNLOAD);
+
+				MessageBox(hWnd, text, title, MB_ICONERROR);
+			}
 			return S_FALSE;
 
 		case IDCANCEL:
@@ -364,24 +387,33 @@ static HRESULT CALLBACK TaskDialogCallbackProc(HWND hWnd, UINT uNotification, WP
 					if(pText)
 					{
 						wsprintf(pText, pTextFormat, GetRequestHttpStatusCode());
-						MessageBox(hWnd, pText, NULL, MB_ICONHAND);
+						MessageBox(hWnd, pText, NULL, MB_ICONERROR);
 						HeapFree(GetProcessHeap(), 0, pText);
 					}
 					else
-						MessageBox(hWnd, L"(Allocation failed)", NULL, MB_ICONHAND);
+						MessageBox(hWnd, L"(Allocation failed)", NULL, MB_ICONERROR);
 				}
 				else if(UpdateRunInstaller(pUserStruct->hWnd, pUserStruct->szTempFile, pUserStruct->szSetupPath, pUserStruct->bRunElevated))
 					SendMessage(hWnd, TDM_CLICK_BUTTON, IDCANCEL, 0);
 				else
-					MessageBox(hWnd, L"Failed to launch installer", NULL, MB_ICONHAND);
+					MessageBox(hWnd, L"Failed to launch installer", NULL, MB_ICONERROR);
 				break;
 
 			case ERROR_OPERATION_ABORTED:
 				break;
 
 			default:
-				MessageBox(hWnd, L"Download failed, please check your internet connection", NULL, MB_ICONHAND);
+			{
+				CString title;
+				title.LoadString(IDS_ERROR);
+
+				CString text;
+				text.LoadString(IDS_UPDATE_ERROR_DOWNLOAD);
+
+				MessageBox(hWnd, text, title, MB_ICONERROR);
+
 				break;
+			}
 			}
 		}
 		break;

@@ -20,19 +20,9 @@ BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	HICON hIconSmall = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
 	SetIcon(hIconSmall, FALSE);
 
-	// Init dialog.
-	CString introText;
-	GetDlgItemText(IDC_MAIN_SYSLINK, introText);
-	introText.Replace(L"%s", VER_FILE_VERSION_WSTR);
-	SetDlgItemText(IDC_MAIN_SYSLINK, introText);
-
-	auto keysComboWnd = CComboBox(GetDlgItem(IDC_COMBO_KEYS));
-	keysComboWnd.AddString(L"Left mouse button");
-	keysComboWnd.AddString(L"Right mouse button");
-	keysComboWnd.AddString(L"Middle mouse button");
-
 	// Load and apply config.
 	m_config.emplace();
+	ApplyUiLanguage();
 	InitMouseAndKeyboardHotKeys();
 	ConfigToGui();
 
@@ -88,9 +78,15 @@ LRESULT CMainDlg::OnNotify(int idCtrl, LPNMHDR pnmh)
 		case NM_RETURN:
 			if((int)ShellExecute(m_hWnd, L"open", ((PNMLINK)pnmh)->item.szUrl, NULL, NULL, SW_SHOWNORMAL) <= 32)
 			{
-				CString str = L"An error occurred while trying to open the following website address:\n";
-				str += ((PNMLINK)pnmh)->item.szUrl;
-				MessageBox(str, NULL, MB_ICONHAND);
+				CString title;
+				title.LoadString(IDS_ERROR);
+
+				CString text;
+				text.LoadString(IDS_ERROR_OPEN_ADDRESS);
+				text += L"\n";
+				text += ((PNMLINK)pnmh)->item.szUrl;
+
+				MessageBox(text, title, MB_ICONERROR);
 			}
 			break;
 		}
@@ -146,8 +142,13 @@ void CMainDlg::OnOK(UINT uNotifyCode, int nID, CWindow wndCtl)
 
 	if(!ctrlKey && !altKey && !shiftKey)
 	{
-		if(MessageBox(L"You are about to set a mouse shortcut without modifier keys.\n"
-			L"Are you sure that you'd like to proceed?", L"Please confirm", MB_ICONWARNING | MB_YESNO) != IDYES)
+		CString title;
+		title.LoadString(IDS_MAINDLG_WARNING_MODIFIER_TITLE);
+
+		CString text;
+		text.LoadString(IDS_MAINDLG_WARNING_MODIFIER_TEXT);
+
+		if(MessageBox(text, title, MB_ICONWARNING | MB_YESNO) != IDYES)
 		{
 			return;
 		}
@@ -195,6 +196,7 @@ void CMainDlg::OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl)
 	INT_PTR nRet = settingsDlg.DoModal();
 	if(nRet == IDOK)
 	{
+		LANGID oldUiLanguage = m_config->m_uiLanguage;
 		bool oldCheckForUpdates = m_config->m_checkForUpdates;
 		bool oldHideTrayIcon = m_config->m_hideTrayIcon;
 
@@ -203,8 +205,14 @@ void CMainDlg::OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl)
 		InitMouseAndKeyboardHotKeys();
 		ConfigToGui();
 
+		LANGID newUiLanguage = m_config->m_uiLanguage;
 		bool newCheckForUpdates = m_config->m_checkForUpdates;
 		bool newHideTrayIcon = m_config->m_hideTrayIcon;
+
+		if(oldUiLanguage != newUiLanguage)
+		{
+			ApplyUiLanguage();
+		}
 
 		if(newHideTrayIcon != oldHideTrayIcon)
 		{
@@ -346,6 +354,85 @@ LRESULT CMainDlg::OnExit(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
+void CMainDlg::ApplyUiLanguage()
+{
+	LANGID uiLanguage = m_config->m_uiLanguage;
+
+	if(!uiLanguage)
+	{
+		CRegKey regKey;
+
+		DWORD dwError = regKey.Open(HKEY_CURRENT_USER, L"Software\\Textify", KEY_QUERY_VALUE);
+		if(dwError == ERROR_SUCCESS)
+		{
+			DWORD dwLanguage;
+			dwError = regKey.QueryDWORDValue(L"language", dwLanguage);
+			if(dwError == ERROR_SUCCESS)
+			{
+				uiLanguage = static_cast<LANGID>(dwLanguage);
+			}
+		}
+	}
+
+	if(uiLanguage)
+	{
+		OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
+		if(GetVersionEx(&osvi) && osvi.dwMajorVersion >= 6)
+		{
+			::SetThreadUILanguage(uiLanguage);
+		}
+		else
+		{
+			::SetThreadLocale(uiLanguage);
+		}
+	}
+
+	CString str;
+
+	str.LoadString(IDS_MAINDLG_TITLE);
+	SetWindowText(str);
+
+	str.LoadString(IDS_MAINDLG_HOMEPAGE);
+
+	CString headerStr;
+	headerStr.LoadString(IDS_MAINDLG_HEADER);
+	headerStr.Replace(L"%s", VER_FILE_VERSION_WSTR);
+	headerStr += L"\n<a href=\"https://rammichael.com/textify\">" + str + L"</a>";
+	SetDlgItemText(IDC_MAIN_SYSLINK, headerStr);
+
+	str.LoadString(IDS_MAINDLG_MOUSE_SHORTCUT);
+	SetDlgItemText(IDC_MOUSE_SHORTCUT, str);
+
+	str.LoadString(IDS_MAINDLG_CTRL);
+	SetDlgItemText(IDC_CHECK_CTRL, str);
+
+	str.LoadString(IDS_MAINDLG_ALT);
+	SetDlgItemText(IDC_CHECK_ALT, str);
+
+	str.LoadString(IDS_MAINDLG_SHIFT);
+	SetDlgItemText(IDC_CHECK_SHIFT, str);
+
+	CComboBox keysComboWnd(GetDlgItem(IDC_COMBO_KEYS));
+	int keysComboCurSel = keysComboWnd.GetCurSel();
+	keysComboWnd.ResetContent();
+	str.LoadString(IDS_MAINDLG_MOUSE_LEFT);
+	keysComboWnd.AddString(str);
+	str.LoadString(IDS_MAINDLG_MOUSE_RIGHT);
+	keysComboWnd.AddString(str);
+	str.LoadString(IDS_MAINDLG_MOUSE_MIDDLE);
+	keysComboWnd.AddString(str);
+	keysComboWnd.SetCurSel(keysComboCurSel);
+
+	str.LoadString(IDS_MAINDLG_APPLY);
+	SetDlgItemText(IDOK, str);
+
+	str.LoadString(IDS_MAINDLG_ADVANCED);
+	SetDlgItemText(IDC_ADVANCED, str);
+
+	str.LoadString(IDS_MAINDLG_MORE_SETTINGS);
+	SetDlgItemText(IDC_SHOW_INI, str);
+}
+
 void CMainDlg::InitMouseAndKeyboardHotKeys()
 {
 	if(m_config->m_mouseHotKey.key != 0)
@@ -469,9 +556,15 @@ void CMainDlg::NotifyIconRightClickMenu()
 	CMenu menu;
 	menu.CreatePopupMenu();
 
-	menu.AppendMenu(MF_STRING, RCMENU_SHOW, L"Textify");
+	CString str;
+
+	str.LoadString(IDS_TRAY_TEXTIFY);
+	menu.AppendMenu(MF_STRING, RCMENU_SHOW, str);
+
 	menu.AppendMenu(MF_SEPARATOR);
-	menu.AppendMenu(MF_STRING, RCMENU_EXIT, L"Exit");
+
+	str.LoadString(IDS_TRAY_EXIT);
+	menu.AppendMenu(MF_STRING, RCMENU_EXIT, str);
 
 	CPoint point;
 	GetCursorPos(&point);
