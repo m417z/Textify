@@ -213,6 +213,70 @@ END
 /////////////////////////////////////////////////////////////////////////////
 
 
+/////////////////////////////////////////////////////////////////////////////
+// 中文(简体，中国) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_MAINDLG_TITLE       "Textify"
+    IDS_MAINDLG_HEADER      "Textify v%s"
+    IDS_MAINDLG_HOMEPAGE    "软件官网"
+    IDS_MAINDLG_MOUSE_SHORTCUT "激活方式"
+    IDS_MAINDLG_CTRL        "&Ctrl"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_MAINDLG_ALT         "Al&t"
+    IDS_MAINDLG_SHIFT       "&Shift"
+    IDS_MAINDLG_MOUSE_LEFT  "鼠标左键"
+    IDS_MAINDLG_MOUSE_RIGHT "鼠标右键"
+    IDS_MAINDLG_MOUSE_MIDDLE "鼠标中键"
+    IDS_MAINDLG_APPLY       "应用(&A)"
+    IDS_MAINDLG_ADVANCED    "高级"
+    IDS_MAINDLG_MORE_SETTINGS "更多设置(&M)"
+    IDS_MAINDLG_WARNING_MODIFIER_TEXT "您设置了一个纯鼠标的激活方式，确定要继续吗？"
+    IDS_MAINDLG_WARNING_MODIFIER_TITLE "请确认"
+    IDS_SETTINGSDLG_TITLE   "更多设置"
+    IDS_SETTINGSDLG_OK      "保存"
+    IDS_SETTINGSDLG_CANCEL  "取消"
+    IDS_SETTINGSDLG_WARNING_DISCARD_TEXT "放弃未保存的更改？"
+    IDS_SETTINGSDLG_WARNING_DISCARD_TITLE "请确认"
+    IDS_TRAY_TEXTIFY        "Textify 设置(&T)"
+END
+
+STRINGTABLE
+BEGIN
+    IDS_TRAY_EXIT           "退出(&X)"
+    IDS_UPDATE_TEXT         "Textify 有版本更新"
+    IDS_UPDATE_TITLE        "Textify 更新"
+    IDS_UPDATE_VERSION_CURRENT "当前版本"
+    IDS_UPDATE_VERSION_NEW  "最新版本"
+    IDS_UPDATE_CHANGELOG    "更新日志"
+    IDS_UPDATE_UPDATE       "更新(&U)"
+    IDS_UPDATE_CLOSE        "关闭(&C)"
+    IDS_UPDATE_DOWNLOADING  "下载中"
+    IDS_UPDATE_ABORT        "中止(&A)"
+    IDS_UPDATE_ERROR_DOWNLOAD "下载失败，请检查您的网络连接"
+    IDS_DEFAULT_TEXT        "(无法检索到文本)"
+    IDS_ERROR               "Textify 错误"
+    IDS_ERROR_OPEN_ADDRESS  "打开如下网址时出错:"
+    IDS_ERROR_EXECUTE       "执行如下命令时出错:"
+END
+
+#endif    // 中文(简体，中国) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
 
 #ifndef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
