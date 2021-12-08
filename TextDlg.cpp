@@ -247,6 +247,13 @@ void CTextDlg::InitWebAppButtons()
 		m_webButtonIcons[0] = icon;
 	}
 
+	if(m_webButtonInfos[0].acceleratorKey)
+	{
+		CString buttonText;
+		buttonText.Format(L"&%c", m_webButtonInfos[0].acceleratorKey);
+		firstButton.SetWindowText(buttonText);
+	}
+
 	m_webButtonTooltip.Create(m_hWnd, NULL, NULL, WS_POPUP | TTS_NOPREFIX, WS_EX_TOPMOST);
 
 	if(m_webButtonInfos[0].name.GetLength() > 0)
@@ -263,7 +270,9 @@ void CTextDlg::InitWebAppButtons()
 	for(int i = 1; i < numberOfButtons; i++)
 	{
 		CString buttonText;
-		if(i + 1 < 10)
+		if(m_webButtonInfos[i].acceleratorKey)
+			buttonText.Format(L"&%c", m_webButtonInfos[i].acceleratorKey);
+		else if(i + 1 < 10)
 			buttonText.Format(L"&%d", i + 1);
 		else if(i + 1 == 10)
 			buttonText.Format(L"1&0");

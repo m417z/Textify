@@ -12,6 +12,7 @@ struct WebButtonInfo
 {
 	CString name;
 	CPath iconPath;
+	WCHAR acceleratorKey;
 	CString command;
 	int width;
 	int height;

@@ -46,6 +46,9 @@ bool UserConfig::LoadFromIniFile()
 
 		webButtonInfo.iconPath = RelativeToAbsolutePath(szBuffer);
 
+		GetPrivateProfileString(iniSectionName, L"key", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
+		webButtonInfo.acceleratorKey = *szBuffer;
+
 		GetPrivateProfileString(iniSectionName, L"command", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
 		if(*szBuffer == L'\0')
 			break;
