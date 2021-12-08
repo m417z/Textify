@@ -396,7 +396,7 @@ void CMainDlg::ApplyUiLanguage()
 	CString headerStr;
 	headerStr.LoadString(IDS_MAINDLG_HEADER);
 	headerStr.Replace(L"%s", VER_FILE_VERSION_WSTR);
-	headerStr += L"\n<a href=\"https://rammichael.com/textify\">" + str + L"</a>";
+	headerStr += L"\n<a href=\"https://ramensoftware.com/textify\">" + str + L"</a>";
 	SetDlgItemText(IDC_MAIN_SYSLINK, headerStr);
 
 	str.LoadString(IDS_MAINDLG_MOUSE_SHORTCUT);

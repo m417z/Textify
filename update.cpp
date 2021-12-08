@@ -184,7 +184,7 @@ void UpdateTaskDialog(HWND hWnd, char* pVersion)
 
 		if(MessageBox(hWnd, text, title, MB_ICONINFORMATION | MB_OKCANCEL) == IDOK)
 		{
-			const WCHAR* url = L"https://rammichael.com/textify";
+			const WCHAR* url = L"https://ramensoftware.com/textify";
 
 			if((int)(UINT_PTR)ShellExecute(hWnd, NULL, url, NULL, NULL, SW_SHOWNORMAL) <= 32)
 			{
@@ -267,7 +267,7 @@ void UpdateTaskDialog(HWND hWnd, char* pVersion)
 	sUserStruct.bRunElevated = !CanAccessFolder(sUserStruct.szSetupPath, GENERIC_READ | GENERIC_WRITE);
 
 	sUserStruct.bDownloading = FALSE;
-	sUserStruct.pHost = L"rammichael.com";
+	sUserStruct.pHost = L"ramensoftware.com";
 	sUserStruct.pPath = L"/downloads/textify_setup.exe";
 
 	tdcTaskDialogConfig.lpCallbackData = (LONG_PTR)&sUserStruct;
