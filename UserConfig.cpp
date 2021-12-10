@@ -34,26 +34,26 @@ bool UserConfig::LoadFromIniFile()
 		CString iniSectionName;
 		iniSectionName.Format(L"web_button_%d", i);
 
-		WebButtonInfo webButtonInfo;
 		WCHAR szBuffer[1025];
-
-		GetPrivateProfileString(iniSectionName, L"name", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
-		webButtonInfo.name = szBuffer;
-
-		GetPrivateProfileString(iniSectionName, L"icon", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
-		if(*szBuffer == L'\0')
-			break;
-
-		webButtonInfo.iconPath = RelativeToAbsolutePath(szBuffer);
-
-		GetPrivateProfileString(iniSectionName, L"key", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
-		webButtonInfo.acceleratorKey = *szBuffer;
 
 		GetPrivateProfileString(iniSectionName, L"command", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
 		if(*szBuffer == L'\0')
 			break;
 
+		WebButtonInfo webButtonInfo;
 		webButtonInfo.command = szBuffer;
+
+		GetPrivateProfileString(iniSectionName, L"name", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
+		webButtonInfo.name = szBuffer;
+
+		GetPrivateProfileString(iniSectionName, L"icon", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
+		if(*szBuffer != L'\0')
+		{
+			webButtonInfo.iconPath = RelativeToAbsolutePath(szBuffer);
+		}
+
+		GetPrivateProfileString(iniSectionName, L"key", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
+		webButtonInfo.acceleratorKey = *szBuffer;
 
 		webButtonInfo.width = GetPrivateProfileInt(iniSectionName, L"width", 0, iniFilePath);
 		webButtonInfo.height = GetPrivateProfileInt(iniSectionName, L"height", 0, iniFilePath);

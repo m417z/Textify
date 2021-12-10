@@ -228,46 +228,19 @@ void CTextDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 void CTextDlg::InitWebAppButtons()
 {
-	CButton firstButton = GetDlgItem(IDC_WEB_BUTTON_1);
-
 	int numberOfButtons = static_cast<int>(m_webButtonInfos.size());
 	if(numberOfButtons == 0)
 	{
-		firstButton.ShowWindow(SW_HIDE);
+		GetDlgItem(IDC_WEB_BUTTON_1).ShowWindow(SW_HIDE);
 		return;
 	}
 
 	m_webButtonIcons.resize(numberOfButtons);
 
-	HICON icon = (HICON)::LoadImage(nullptr, m_webButtonInfos[0].iconPath.m_strPath.GetString(),
-		IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), LR_LOADFROMFILE);
-	if(icon)
-	{
-		firstButton.SetIcon(icon);
-		m_webButtonIcons[0] = icon;
-	}
-
-	if(m_webButtonInfos[0].acceleratorKey)
-	{
-		CString buttonText;
-		buttonText.Format(L"&%c", m_webButtonInfos[0].acceleratorKey);
-		firstButton.SetWindowText(buttonText);
-	}
-
-	m_webButtonTooltip.Create(m_hWnd, NULL, NULL, WS_POPUP | TTS_NOPREFIX, WS_EX_TOPMOST);
-
-	if(m_webButtonInfos[0].name.GetLength() > 0)
-	{
-		m_webButtonTooltip.AddTool(
-			CToolInfo(TTF_SUBCLASS, firstButton, 0, NULL, (PWSTR)m_webButtonInfos[0].name.GetString()));
-	}
-
 	CRect firstButtonRect;
-	firstButton.GetWindowRect(firstButtonRect);
+	HFONT firstButtonFont;
 
-	HFONT firstButtonFont = firstButton.GetFont();
-
-	for(int i = 1; i < numberOfButtons; i++)
+	for(int i = 0; i < numberOfButtons; i++)
 	{
 		CString buttonText;
 		if(m_webButtonInfos[i].acceleratorKey)
@@ -279,23 +252,43 @@ void CTextDlg::InitWebAppButtons()
 		else
 			buttonText.Format(L"%d", i + 1);
 
-		CButton newButton;
-		newButton.Create(m_hWnd, firstButtonRect, buttonText,
-			BS_ICON | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0, IDC_WEB_BUTTON_1 + i);
-		newButton.SetFont(firstButtonFont);
+		CButton button;
 
-		icon = (HICON)::LoadImage(nullptr, m_webButtonInfos[i].iconPath.m_strPath.GetString(),
-			IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), LR_LOADFROMFILE);
-		if(icon)
+		if(i == 0)
 		{
-			newButton.SetIcon(icon);
-			m_webButtonIcons[i] = icon;
+			button = GetDlgItem(IDC_WEB_BUTTON_1);
+			button.GetWindowRect(firstButtonRect);
+			firstButtonFont = button.GetFont();
+			button.SetWindowText(buttonText);
+		}
+		else
+		{
+			button.Create(m_hWnd, firstButtonRect, buttonText,
+				WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0, IDC_WEB_BUTTON_1 + i);
+			button.SetFont(firstButtonFont);
 		}
 
-		if(m_webButtonInfos[i].name.GetLength() > 0)
+		if(!m_webButtonInfos[i].name.IsEmpty())
 		{
+			if(!m_webButtonTooltip)
+			{
+				m_webButtonTooltip.Create(m_hWnd, NULL, NULL, WS_POPUP | TTS_NOPREFIX, WS_EX_TOPMOST);
+			}
+
 			m_webButtonTooltip.AddTool(
-				CToolInfo(TTF_SUBCLASS, newButton, 0, NULL, (PWSTR)m_webButtonInfos[i].name.GetString()));
+				CToolInfo(TTF_SUBCLASS, button, 0, NULL, (PWSTR)m_webButtonInfos[i].name.GetString()));
+		}
+
+		if(!m_webButtonInfos[i].iconPath.m_strPath.IsEmpty())
+		{
+			HICON icon = (HICON)::LoadImage(nullptr, m_webButtonInfos[i].iconPath.m_strPath.GetString(),
+				IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), LR_LOADFROMFILE);
+			if(icon)
+			{
+				button.ModifyStyle(0, BS_ICON);
+				button.SetIcon(icon);
+				m_webButtonIcons[i] = icon;
+			}
 		}
 	}
 }
