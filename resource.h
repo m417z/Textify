@@ -19,29 +19,30 @@
 #define IDS_MAINDLG_APPLY               213
 #define IDS_MAINDLG_ADVANCED            214
 #define IDS_MAINDLG_MORE_SETTINGS       215
-#define IDS_MAINDLG_WARNING_MODIFIER_TEXT 216
-#define IDS_MAINDLG_WARNING_MODIFIER_TITLE 217
-#define IDS_SETTINGSDLG_TITLE           218
-#define IDS_SETTINGSDLG_OK              219
-#define IDS_SETTINGSDLG_CANCEL          220
-#define IDS_SETTINGSDLG_WARNING_DISCARD_TEXT 221
-#define IDS_SETTINGSDLG_WARNING_DISCARD_TITLE 222
-#define IDS_TRAY_TEXTIFY                223
-#define IDS_TRAY_EXIT                   224
-#define IDS_UPDATE_TEXT                 225
-#define IDS_UPDATE_TITLE                226
-#define IDS_UPDATE_VERSION_CURRENT      227
-#define IDS_UPDATE_VERSION_NEW          228
-#define IDS_UPDATE_CHANGELOG            229
-#define IDS_UPDATE_UPDATE               230
-#define IDS_UPDATE_CLOSE                231
-#define IDS_UPDATE_DOWNLOADING          232
-#define IDS_UPDATE_ABORT                233
-#define IDS_UPDATE_ERROR_DOWNLOAD       234
-#define IDS_DEFAULT_TEXT                235
-#define IDS_ERROR                       236
-#define IDS_ERROR_OPEN_ADDRESS          237
-#define IDS_ERROR_EXECUTE               238
+#define IDS_MAINDLG_EXIT                216
+#define IDS_MAINDLG_WARNING_MODIFIER_TEXT 217
+#define IDS_MAINDLG_WARNING_MODIFIER_TITLE 218
+#define IDS_SETTINGSDLG_TITLE           219
+#define IDS_SETTINGSDLG_OK              220
+#define IDS_SETTINGSDLG_CANCEL          221
+#define IDS_SETTINGSDLG_WARNING_DISCARD_TEXT 222
+#define IDS_SETTINGSDLG_WARNING_DISCARD_TITLE 223
+#define IDS_TRAY_TEXTIFY                224
+#define IDS_TRAY_EXIT                   225
+#define IDS_UPDATE_TEXT                 226
+#define IDS_UPDATE_TITLE                227
+#define IDS_UPDATE_VERSION_CURRENT      228
+#define IDS_UPDATE_VERSION_NEW          229
+#define IDS_UPDATE_CHANGELOG            230
+#define IDS_UPDATE_UPDATE               231
+#define IDS_UPDATE_CLOSE                232
+#define IDS_UPDATE_DOWNLOADING          233
+#define IDS_UPDATE_ABORT                234
+#define IDS_UPDATE_ERROR_DOWNLOAD       235
+#define IDS_DEFAULT_TEXT                236
+#define IDS_ERROR                       237
+#define IDS_ERROR_OPEN_ADDRESS          238
+#define IDS_ERROR_EXECUTE               239
 #define IDC_MAIN_SYSLINK                1000
 #define IDC_MOUSE_SHORTCUT              1001
 #define IDC_CHECK_CTRL                  1002
@@ -50,17 +51,18 @@
 #define IDC_COMBO_KEYS                  1005
 #define IDC_ADVANCED                    1006
 #define IDC_SHOW_INI                    1007
-#define IDC_CONFIG_TEXT                 1008
-#define IDC_EDIT                        1009
-#define IDC_WEB_BUTTON_1                1010
+#define IDC_EXIT                        1008
+#define IDC_CONFIG_TEXT                 1009
+#define IDC_EDIT                        1010
+#define IDC_WEB_BUTTON_1                1011
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        239
+#define _APS_NEXT_RESOURCE_VALUE        240
 #define _APS_NEXT_COMMAND_VALUE         32775
-#define _APS_NEXT_CONTROL_VALUE         1011
+#define _APS_NEXT_CONTROL_VALUE         1012
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

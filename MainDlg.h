@@ -38,6 +38,7 @@ public:
 		COMMAND_ID_HANDLER_EX(IDOK, OnOK)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnCancel)
 		COMMAND_ID_HANDLER_EX(IDC_SHOW_INI, OnShowIni)
+		COMMAND_ID_HANDLER_EX(IDC_EXIT, OnExitButton)
 		COMMAND_HANDLER_EX(IDC_CHECK_CTRL, BN_CLICKED, OnConfigChanged)
 		COMMAND_HANDLER_EX(IDC_CHECK_ALT, BN_CLICKED, OnConfigChanged)
 		COMMAND_HANDLER_EX(IDC_CHECK_SHIFT, BN_CLICKED, OnConfigChanged)
@@ -60,6 +61,7 @@ public:
 	void OnOK(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnCancel(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl);
+	void OnExitButton(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnConfigChanged(UINT uNotifyCode, int nID, CWindow wndCtl);
 	LRESULT OnMouseHookClicked(UINT uMsg, WPARAM wParam, LPARAM lParam);
 	LRESULT OnTaskbarCreated(UINT uMsg, WPARAM wParam, LPARAM lParam);

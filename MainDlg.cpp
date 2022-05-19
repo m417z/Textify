@@ -232,6 +232,11 @@ void CMainDlg::OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl)
 	}
 }
 
+void CMainDlg::OnExitButton(UINT uNotifyCode, int nID, CWindow wndCtl)
+{
+	MyEndDialog();
+}
+
 void CMainDlg::OnConfigChanged(UINT uNotifyCode, int nID, CWindow wndCtl)
 {
 	CButton(GetDlgItem(IDOK)).EnableWindow();
@@ -430,6 +435,9 @@ void CMainDlg::ApplyUiLanguage()
 
 	str.LoadString(IDS_MAINDLG_MORE_SETTINGS);
 	SetDlgItemText(IDC_SHOW_INI, str);
+
+	str.LoadString(IDS_MAINDLG_EXIT);
+	SetDlgItemText(IDC_EXIT, str);
 }
 
 void CMainDlg::ApplyMouseAndKeyboardHotKeys()
