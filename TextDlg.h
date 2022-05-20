@@ -21,11 +21,9 @@ public:
 		MSG_WM_CHAR(OnChar)
 	END_MSG_MAP()
 
-	CTextDlg(std::vector<WebButtonInfo> webButtonInfos, bool autoCopySelection = false, bool unicodeSpacesToAscii = false) :
+	CTextDlg(const UserConfig& config) :
 		m_wndEdit(this, 1),
-		m_webButtonInfos(std::move(webButtonInfos)),
-		m_autoCopySelection(autoCopySelection),
-		m_unicodeSpacesToAscii(unicodeSpacesToAscii) {}
+		m_config(config) {}
 
 	BOOL OnIdle();
 
@@ -41,11 +39,10 @@ public:
 	void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
 
 private:
+	const UserConfig& m_config;
 	CContainedWindowT<CEdit> m_wndEdit;
-	bool m_autoCopySelection, m_unicodeSpacesToAscii;
 	std::vector<int> m_editIndexes;
 	int m_lastSelStart = 0, m_lastSelEnd = 0;
-	std::vector<WebButtonInfo> m_webButtonInfos;
 	CToolTipCtrl m_webButtonTooltip;
 	std::vector<CIcon> m_webButtonIcons;
 	bool m_showingModalBrowserHost = false;

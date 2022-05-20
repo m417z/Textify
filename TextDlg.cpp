@@ -8,12 +8,16 @@ namespace
 {
 	void GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
 	void UnicodeSpacesToAscii(CString& string);
-	BOOL UnadjustWindowRectEx(LPRECT prc, DWORD dwStyle, BOOL fMenu, DWORD dwExStyle);
+	int MyGetDpiForWindow(HWND hWnd);
+	int ScaleForWindow(HWND hWnd, int value);
+	int GetSystemMetricsForWindow(HWND hWnd, int nIndex);
+	int AdjustWindowRectExForWindow(HWND hWnd, LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle);
+	BOOL UnadjustWindowRectExForWindow(HWND hWnd, LPRECT prc, DWORD dwStyle, BOOL fMenu, DWORD dwExStyle);
 	BOOL WndAdjustWindowRect(CWindow window, LPRECT prc);
 	BOOL WndUnadjustWindowRect(CWindow window, LPRECT prc);
 	CSize GetEditControlTextSize(CEdit window, LPCTSTR lpszString, int nMaxWidth = INT_MAX);
-	CSize TextSizeToEditClientSize(CEdit editWnd, CSize textSize);
-	CSize EditClientSizeToTextSize(CEdit editWnd, CSize editClientSize);
+	CSize TextSizeToEditClientSize(HWND hWnd, CEdit editWnd, CSize textSize);
+	CSize EditClientSizeToTextSize(HWND hWnd, CEdit editWnd, CSize editClientSize);
 	BOOL SetClipboardText(const WCHAR* text);
 }
 
@@ -58,7 +62,7 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	CString strDefaultText;
 	strDefaultText.LoadString(IDS_DEFAULT_TEXT);
 
-	if(m_unicodeSpacesToAscii)
+	if(m_config.m_unicodeSpacesToAscii)
 	{
 		UnicodeSpacesToAscii(strText);
 	}
@@ -77,7 +81,7 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	m_lastSelStart = 0;
 	m_lastSelEnd = strText.GetLength();
 
-	if(m_autoCopySelection)
+	if(m_config.m_autoCopySelection)
 	{
 		SetClipboardText(strText);
 	}
@@ -112,7 +116,7 @@ void CTextDlg::OnCancel(UINT uNotifyCode, int nID, CWindow wndCtl)
 void CTextDlg::OnCommand(UINT uNotifyCode, int nID, CWindow wndCtl)
 {
 	int buttonIndex = nID - IDC_WEB_BUTTON_1;
-	if(buttonIndex >= 0 && buttonIndex < static_cast<int>(m_webButtonInfos.size()))
+	if(buttonIndex >= 0 && buttonIndex < static_cast<int>(m_config.m_webButtonInfos.size()))
 	{
 		CString selectedText;
 		m_wndEdit.GetWindowText(selectedText);
@@ -127,7 +131,7 @@ void CTextDlg::OnCommand(UINT uNotifyCode, int nID, CWindow wndCtl)
 		m_showingModalBrowserHost = true;
 		ShowWindow(SW_HIDE);
 
-		const auto& buttonInfo = m_webButtonInfos[buttonIndex];
+		const auto& buttonInfo = m_config.m_webButtonInfos[buttonIndex];
 		bool succeeded = CommandLaunch(buttonInfo.command, selectedText,
 			buttonInfo.width, buttonInfo.height);
 
@@ -228,23 +232,31 @@ void CTextDlg::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 void CTextDlg::InitWebAppButtons()
 {
-	int numberOfButtons = static_cast<int>(m_webButtonInfos.size());
+	// This id shouldn't be in use yet, we're going to use it for a newly created button.
+	ATLASSERT(!GetDlgItem(IDC_WEB_BUTTON_1));
+
+	int numberOfButtons = static_cast<int>(m_config.m_webButtonInfos.size());
 	if(numberOfButtons == 0)
 	{
-		GetDlgItem(IDC_WEB_BUTTON_1).ShowWindow(SW_HIDE);
 		return;
 	}
 
 	m_webButtonIcons.resize(numberOfButtons);
 
-	CRect firstButtonRect;
-	HFONT firstButtonFont;
+	int buttonSize = ScaleForWindow(m_hWnd, m_config.m_webButtonsIconSize);
+
+	CRect buttonRect{
+		0,
+		0,
+		GetSystemMetricsForWindow(m_hWnd, SM_CXEDGE) * 4 + buttonSize,
+		GetSystemMetricsForWindow(m_hWnd, SM_CYEDGE) * 4 + buttonSize
+	};
 
 	for(int i = 0; i < numberOfButtons; i++)
 	{
 		CString buttonText;
-		if(m_webButtonInfos[i].acceleratorKey)
-			buttonText.Format(L"&%c", m_webButtonInfos[i].acceleratorKey);
+		if(m_config.m_webButtonInfos[i].acceleratorKey)
+			buttonText.Format(L"&%c", m_config.m_webButtonInfos[i].acceleratorKey);
 		else if(i + 1 < 10)
 			buttonText.Format(L"&%d", i + 1);
 		else if(i + 1 == 10)
@@ -253,22 +265,11 @@ void CTextDlg::InitWebAppButtons()
 			buttonText.Format(L"%d", i + 1);
 
 		CButton button;
+		button.Create(m_hWnd, buttonRect, buttonText,
+			WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0, IDC_WEB_BUTTON_1 + i);
+		button.SetFont(GetFont());
 
-		if(i == 0)
-		{
-			button = GetDlgItem(IDC_WEB_BUTTON_1);
-			button.GetWindowRect(firstButtonRect);
-			firstButtonFont = button.GetFont();
-			button.SetWindowText(buttonText);
-		}
-		else
-		{
-			button.Create(m_hWnd, firstButtonRect, buttonText,
-				WS_CHILD | WS_VISIBLE | WS_TABSTOP, 0, IDC_WEB_BUTTON_1 + i);
-			button.SetFont(firstButtonFont);
-		}
-
-		if(!m_webButtonInfos[i].name.IsEmpty())
+		if(!m_config.m_webButtonInfos[i].name.IsEmpty())
 		{
 			if(!m_webButtonTooltip)
 			{
@@ -276,13 +277,13 @@ void CTextDlg::InitWebAppButtons()
 			}
 
 			m_webButtonTooltip.AddTool(
-				CToolInfo(TTF_SUBCLASS, button, 0, NULL, (PWSTR)m_webButtonInfos[i].name.GetString()));
+				CToolInfo(TTF_SUBCLASS, button, 0, NULL, (PWSTR)m_config.m_webButtonInfos[i].name.GetString()));
 		}
 
-		if(!m_webButtonInfos[i].iconPath.m_strPath.IsEmpty())
+		if(!m_config.m_webButtonInfos[i].iconPath.m_strPath.IsEmpty())
 		{
-			HICON icon = (HICON)::LoadImage(nullptr, m_webButtonInfos[i].iconPath.m_strPath.GetString(),
-				IMAGE_ICON, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON), LR_LOADFROMFILE);
+			HICON icon = (HICON)::LoadImage(nullptr, m_config.m_webButtonInfos[i].iconPath.m_strPath.GetString(),
+				IMAGE_ICON, buttonSize, buttonSize, LR_LOADFROMFILE);
 			if(icon)
 			{
 				button.ModifyStyle(0, BS_ICON);
@@ -313,12 +314,12 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 	strText.Replace(L"\\", L" \\");
 
 	CSize defTextSize = GetEditControlTextSize(editWnd, strDefaultText);
-	CSize defTextSizeClient = TextSizeToEditClientSize(editWnd, defTextSize);
+	CSize defTextSizeClient = TextSizeToEditClientSize(m_hWnd, editWnd, defTextSize);
 
 	int nMaxClientWidth = defTextSizeClient.cx > rcAccObject.Width() ? defTextSizeClient.cx : rcAccObject.Width();
 
 	CSize textSize = GetEditControlTextSize(editWnd, strText, nMaxClientWidth);
-	CSize textSizeClient = TextSizeToEditClientSize(editWnd, textSize);
+	CSize textSizeClient = TextSizeToEditClientSize(m_hWnd, editWnd, textSize);
 
 	if(textSizeClient.cx < rcAccObject.Width())
 	{
@@ -326,13 +327,7 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 		// as it will fit perfectly above the control.
 		// Let's see if the shrinking is small.
 
-		int nMinClientWidth = 200;
-		CDC hdc = ::GetDC(NULL);
-		if(hdc)
-		{
-			nMinClientWidth = MulDiv(nMinClientWidth, hdc.GetDeviceCaps(LOGPIXELSX), 96);
-			hdc.DeleteDC();
-		}
+		int nMinClientWidth = ScaleForWindow(m_hWnd, 200);
 
 		if(rcAccObject.Width() <= nMinClientWidth || textSizeClient.cx * 1.5 >= rcAccObject.Width())
 		{
@@ -354,19 +349,28 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 		rcClient.MoveToXY(ptWindowLocation);
 	}
 
-	int numberOfWebAppButtons = static_cast<int>(m_webButtonInfos.size());
+	int numberOfWebAppButtons = static_cast<int>(m_config.m_webButtonInfos.size());
+	int numberOfWebAppButtonsX = numberOfWebAppButtons;
+	int numberOfWebAppButtonsY = 1;
 	CSize webAppButtonSize;
 	if(numberOfWebAppButtons > 0)
 	{
+		int numberOfWebAppButtonsPerRow = m_config.m_webButtonsPerRow;
+		if(numberOfWebAppButtonsPerRow > 0)
+		{
+			numberOfWebAppButtonsX = numberOfWebAppButtons > numberOfWebAppButtonsPerRow ? numberOfWebAppButtonsPerRow : numberOfWebAppButtons;
+			numberOfWebAppButtonsY = (numberOfWebAppButtons + numberOfWebAppButtonsPerRow - 1) / numberOfWebAppButtonsPerRow;
+		}
+
 		CButton webAppButton = GetDlgItem(IDC_WEB_BUTTON_1);
 		CRect webAppButtonRect;
 		webAppButton.GetWindowRect(webAppButtonRect);
 		webAppButtonSize = webAppButtonRect.Size();
 
-		if(rcClient.Width() < webAppButtonSize.cx * numberOfWebAppButtons)
-			rcClient.right = rcClient.left + webAppButtonSize.cx * numberOfWebAppButtons;
+		if(rcClient.Width() < webAppButtonSize.cx * numberOfWebAppButtonsX)
+			rcClient.right = rcClient.left + webAppButtonSize.cx * numberOfWebAppButtonsX;
 
-		rcClient.bottom += webAppButtonSize.cy;
+		rcClient.bottom += webAppButtonSize.cy * numberOfWebAppButtonsY;
 	}
 
 	CRect rcWindow{ rcClient };
@@ -389,7 +393,7 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 			}
 
 			editWnd.ShowScrollBar(SB_VERT);
-			rcWindow.right += GetSystemMetrics(SM_CXVSCROLL);
+			rcWindow.right += GetSystemMetricsForWindow(m_hWnd, SM_CXVSCROLL);
 			if(rcWindow.Width() > rcMonitor.Width())
 			{
 				rcWindow.left = 0;
@@ -424,27 +428,34 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 
 	if(numberOfWebAppButtons > 0)
 	{
-		if(rcClient.bottom - webAppButtonSize.cy > rcClient.top)
+		if(rcClient.bottom - webAppButtonSize.cy * numberOfWebAppButtonsY > rcClient.top)
 		{
-			rcClient.bottom -= webAppButtonSize.cy;
+			rcClient.bottom -= webAppButtonSize.cy * numberOfWebAppButtonsY;
+
+			CPoint ptButton{ 0, rcClient.Height() };
 
 			for(int i = 0; i < numberOfWebAppButtons; i++)
 			{
+				if(i > 0 && i % numberOfWebAppButtonsX == 0)
+				{
+					ptButton.x = 0;
+					ptButton.y += webAppButtonSize.cy;
+				}
+
 				CButton webAppButton = GetDlgItem(IDC_WEB_BUTTON_1 + i);
-				webAppButton.SetWindowPos(NULL, webAppButtonSize.cx * i, rcClient.Height(), 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+				webAppButton.SetWindowPos(NULL, ptButton.x, ptButton.y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+
+				ptButton.x += webAppButtonSize.cx;
 			}
 		}
 		else
 		{
-			// Remove WebApp buttons.
+			// Hide WebApp buttons.
 			for(int i = 0; i < numberOfWebAppButtons; i++)
 			{
 				CButton webAppButton = GetDlgItem(IDC_WEB_BUTTON_1 + i);
 				webAppButton.ShowWindow(SW_HIDE);
 			}
-
-			m_webButtonInfos.clear();
-			numberOfWebAppButtons = 0;
 		}
 	}
 
@@ -454,7 +465,7 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 
 void CTextDlg::OnSelectionMaybeChanged()
 {
-	if(m_autoCopySelection)
+	if(m_config.m_autoCopySelection)
 	{
 		int start, end;
 		m_wndEdit.GetSel(start, end);
@@ -686,12 +697,96 @@ namespace
 		}
 	}
 
-	BOOL UnadjustWindowRectEx(LPRECT prc, DWORD dwStyle, BOOL fMenu, DWORD dwExStyle)
+	int MyGetDpiForWindow(HWND hWnd)
+	{
+		using GetDpiForWindow_t = UINT(WINAPI*)(HWND hwnd);
+		static GetDpiForWindow_t pGetDpiForWindow = []()
+		{
+			HMODULE hUser32 = GetModuleHandle(L"user32.dll");
+			if(hUser32)
+			{
+				return (GetDpiForWindow_t)GetProcAddress(hUser32, "GetDpiForWindow");
+			}
+
+			return (GetDpiForWindow_t)nullptr;
+		}();
+
+		int iDpi = 96;
+		if(pGetDpiForWindow)
+		{
+			iDpi = pGetDpiForWindow(hWnd);
+		}
+		else
+		{
+			CDC hdc = ::GetDC(NULL);
+			if(hdc)
+			{
+				iDpi = hdc.GetDeviceCaps(LOGPIXELSX);
+			}
+		}
+
+		return iDpi;
+	}
+
+	int ScaleForWindow(HWND hWnd, int value)
+	{
+		return MulDiv(value, MyGetDpiForWindow(hWnd), 96);
+	}
+
+	int GetSystemMetricsForWindow(HWND hWnd, int nIndex)
+	{
+		using GetSystemMetricsForDpi_t = int(WINAPI*)(int nIndex, UINT dpi);
+		static GetSystemMetricsForDpi_t pGetSystemMetricsForDpi = []()
+		{
+			HMODULE hUser32 = GetModuleHandle(L"user32.dll");
+			if(hUser32)
+			{
+				return (GetSystemMetricsForDpi_t)GetProcAddress(hUser32, "GetSystemMetricsForDpi");
+			}
+
+			return (GetSystemMetricsForDpi_t)nullptr;
+		}();
+
+		if(pGetSystemMetricsForDpi)
+		{
+			return pGetSystemMetricsForDpi(nIndex, MyGetDpiForWindow(hWnd));
+		}
+		else
+		{
+			return GetSystemMetrics(nIndex);
+		}
+	}
+
+	int AdjustWindowRectExForWindow(HWND hWnd, LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle)
+	{
+		using AdjustWindowRectExForDpi_t = BOOL(WINAPI*)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
+		static AdjustWindowRectExForDpi_t pAdjustWindowRectExForDpi = []()
+		{
+			HMODULE hUser32 = GetModuleHandle(L"user32.dll");
+			if(hUser32)
+			{
+				return (AdjustWindowRectExForDpi_t)GetProcAddress(hUser32, "AdjustWindowRectExForDpi");
+			}
+
+			return (AdjustWindowRectExForDpi_t)nullptr;
+		}();
+
+		if(pAdjustWindowRectExForDpi)
+		{
+			return pAdjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, MyGetDpiForWindow(hWnd));
+		}
+		else
+		{
+			return AdjustWindowRectEx(lpRect, dwStyle, bMenu, dwExStyle);
+		}
+	}
+
+	BOOL UnadjustWindowRectExForWindow(HWND hWnd, LPRECT prc, DWORD dwStyle, BOOL fMenu, DWORD dwExStyle)
 	{
 		RECT rc;
 		SetRectEmpty(&rc);
 
-		BOOL fRc = AdjustWindowRectEx(&rc, dwStyle, fMenu, dwExStyle);
+		BOOL fRc = AdjustWindowRectExForWindow(hWnd, &rc, dwStyle, fMenu, dwExStyle);
 		if(fRc)
 		{
 			prc->left -= rc.left;
@@ -709,7 +804,7 @@ namespace
 		DWORD dwExStyle = window.GetExStyle();
 		BOOL bMenu = (!(dwStyle & WS_CHILD) && (window.GetMenu() != NULL));
 
-		return AdjustWindowRectEx(prc, dwStyle, bMenu, dwExStyle);
+		return AdjustWindowRectExForWindow(window, prc, dwStyle, bMenu, dwExStyle);
 	}
 
 	BOOL WndUnadjustWindowRect(CWindow window, LPRECT prc)
@@ -718,7 +813,7 @@ namespace
 		DWORD dwExStyle = window.GetExStyle();
 		BOOL bMenu = (!(dwStyle & WS_CHILD) && (window.GetMenu() != NULL));
 
-		return UnadjustWindowRectEx(prc, dwStyle, bMenu, dwExStyle);
+		return UnadjustWindowRectExForWindow(window, prc, dwStyle, bMenu, dwExStyle);
 	}
 
 	CSize GetEditControlTextSize(CEdit window, LPCTSTR lpszString, int nMaxWidth /*= INT_MAX*/)
@@ -738,7 +833,7 @@ namespace
 		return rc.Size();
 	}
 
-	CSize TextSizeToEditClientSize(CEdit editWnd, CSize textSize)
+	CSize TextSizeToEditClientSize(HWND hWnd, CEdit editWnd, CSize textSize)
 	{
 		CRect rc{ CPoint{ 0, 0 }, textSize };
 		WndAdjustWindowRect(editWnd, &rc);
@@ -751,27 +846,27 @@ namespace
 		// Experiments show that this works kinda ok.
 		editClientSize.cx = rc.Width() +
 			nLeftMargin + nRightMargin +
-			2 * GetSystemMetrics(SM_CXBORDER) + 2 * GetSystemMetrics(SM_CXDLGFRAME);
+			2 * GetSystemMetricsForWindow(hWnd, SM_CXBORDER) + 2 * GetSystemMetricsForWindow(hWnd, SM_CXDLGFRAME);
 
 		editClientSize.cy = rc.Height() +
-			2 * GetSystemMetrics(SM_CYBORDER)/* +
-			2 * GetSystemMetrics(SM_CYDLGFRAME)*/;
+			2 * GetSystemMetricsForWindow(hWnd, SM_CYBORDER)/* +
+			2 * GetSystemMetricsForWindow(hWnd, SM_CYDLGFRAME)*/;
 
 		return editClientSize;
 	}
 
-	CSize EditClientSizeToTextSize(CEdit editWnd, CSize editClientSize)
+	CSize EditClientSizeToTextSize(HWND hWnd, CEdit editWnd, CSize editClientSize)
 	{
 		UINT nLeftMargin, nRightMargin;
 		editWnd.GetMargins(nLeftMargin, nRightMargin);
 
 		editClientSize.cx -=
 			nLeftMargin + nRightMargin +
-			2 * GetSystemMetrics(SM_CXBORDER) + 2 * GetSystemMetrics(SM_CXDLGFRAME);
+			2 * GetSystemMetricsForWindow(hWnd, SM_CXBORDER) + 2 * GetSystemMetricsForWindow(hWnd, SM_CXDLGFRAME);
 
 		editClientSize.cy -=
-			2 * GetSystemMetrics(SM_CYBORDER)/* +
-			2 * GetSystemMetrics(SM_CYDLGFRAME)*/;
+			2 * GetSystemMetricsForWindow(hWnd, SM_CYBORDER)/* +
+			2 * GetSystemMetricsForWindow(hWnd, SM_CYDLGFRAME)*/;
 
 		CRect rc{ CPoint{ 0, 0 }, editClientSize };
 		WndUnadjustWindowRect(editWnd, &rc);

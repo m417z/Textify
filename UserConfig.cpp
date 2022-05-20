@@ -1,17 +1,61 @@
 #include "stdafx.h"
 #include "UserConfig.h"
 
-UserConfig::UserConfig(bool loadFromIniFile /*= true*/)
+namespace
 {
-	if(loadFromIniFile)
-		LoadFromIniFile();
+	CPath GetIniFilePath()
+	{
+		CPath iniFilePath;
+		GetModuleFileName(NULL, iniFilePath.m_strPath.GetBuffer(MAX_PATH), MAX_PATH);
+		iniFilePath.m_strPath.ReleaseBuffer();
+		iniFilePath.RenameExtension(L".ini");
+		return iniFilePath;
+	}
+
+	CPath RelativeToAbsolutePath(CPath relativePath)
+	{
+		CPath moduleFileNamePath;
+
+		GetModuleFileName(NULL, moduleFileNamePath.m_strPath.GetBuffer(MAX_PATH), MAX_PATH);
+		moduleFileNamePath.m_strPath.ReleaseBuffer();
+		moduleFileNamePath.RemoveFileSpec();
+
+		CPath result;
+		result.Combine(moduleFileNamePath, relativePath);
+
+		return result;
+	}
+
+	CPath AbsoluteToRelativePath(CPath absolutePath)
+	{
+		CPath moduleFileNamePath;
+
+		GetModuleFileName(NULL, moduleFileNamePath.m_strPath.GetBuffer(MAX_PATH), MAX_PATH);
+		moduleFileNamePath.m_strPath.ReleaseBuffer();
+		moduleFileNamePath.RemoveFileSpec();
+
+		CPath result;
+		result.RelativePathTo(moduleFileNamePath, FILE_ATTRIBUTE_DIRECTORY, absolutePath, FILE_ATTRIBUTE_NORMAL);
+
+		if(result.m_strPath.GetLength() > 2 &&
+			result.m_strPath[0] == L'.' &&
+			result.m_strPath[1] == L'\\')
+		{
+			result.m_strPath = result.m_strPath.Right(result.m_strPath.GetLength() - 2);
+		}
+
+		return result;
+	}
+}
+
+UserConfig::UserConfig()
+{
+	LoadFromIniFile();
 }
 
 bool UserConfig::LoadFromIniFile()
 {
 	CPath iniFilePath = GetIniFilePath();
-	if(!iniFilePath)
-		return false;
 
 	m_mouseHotKey.key = GetPrivateProfileInt(L"mouse", L"key", 0, iniFilePath);
 	m_mouseHotKey.ctrl = GetPrivateProfileInt(L"mouse", L"ctrl", 0, iniFilePath);
@@ -24,10 +68,13 @@ bool UserConfig::LoadFromIniFile()
 	m_keybdHotKey.shift = GetPrivateProfileInt(L"keyboard", L"shift", 0, iniFilePath);
 
 	m_uiLanguage = static_cast<LANGID>(GetPrivateProfileInt(L"config", L"ui_language", 0, iniFilePath));
-	m_checkForUpdates = GetPrivateProfileInt(L"config", L"check_for_updates", 0, iniFilePath);
+	m_checkForUpdates = GetPrivateProfileInt(L"config", L"check_for_updates", 1, iniFilePath);
 	m_autoCopySelection = GetPrivateProfileInt(L"config", L"auto_copy_selection", 0, iniFilePath);
 	m_hideTrayIcon = GetPrivateProfileInt(L"config", L"hide_tray_icon", 0, iniFilePath);
 	m_unicodeSpacesToAscii = GetPrivateProfileInt(L"config", L"unicode_spaces_to_ascii", 0, iniFilePath);
+
+	m_webButtonsIconSize = GetPrivateProfileInt(L"web_buttons", L"icon_size", 16, iniFilePath);
+	m_webButtonsPerRow = GetPrivateProfileInt(L"web_buttons", L"buttons_per_row", 8, iniFilePath);
 
 	for(int i = 1; ; i++)
 	{
@@ -78,7 +125,7 @@ bool UserConfig::LoadFromIniFile()
 	return true;
 }
 
-bool UserConfig::SaveToIniFile()
+bool UserConfig::SaveToIniFile() const
 {
 	CPath iniFilePath = GetIniFilePath();
 	if(!iniFilePath)
@@ -158,48 +205,4 @@ bool UserConfig::SaveToIniFile()
 	}*/
 
 	return succeeded;
-}
-
-CPath UserConfig::GetIniFilePath()
-{
-	CPath iniFilePath;
-	GetModuleFileName(NULL, iniFilePath.m_strPath.GetBuffer(MAX_PATH), MAX_PATH);
-	iniFilePath.m_strPath.ReleaseBuffer();
-	iniFilePath.RenameExtension(L".ini");
-	return iniFilePath;
-}
-
-CPath UserConfig::RelativeToAbsolutePath(CPath relativePath)
-{
-	CPath moduleFileNamePath;
-
-	GetModuleFileName(NULL, moduleFileNamePath.m_strPath.GetBuffer(MAX_PATH), MAX_PATH);
-	moduleFileNamePath.m_strPath.ReleaseBuffer();
-	moduleFileNamePath.RemoveFileSpec();
-
-	CPath result;
-	result.Combine(moduleFileNamePath, relativePath);
-
-	return result;
-}
-
-CPath UserConfig::AbsoluteToRelativePath(CPath absolutePath)
-{
-	CPath moduleFileNamePath;
-
-	GetModuleFileName(NULL, moduleFileNamePath.m_strPath.GetBuffer(MAX_PATH), MAX_PATH);
-	moduleFileNamePath.m_strPath.ReleaseBuffer();
-	moduleFileNamePath.RemoveFileSpec();
-
-	CPath result;
-	result.RelativePathTo(moduleFileNamePath, FILE_ATTRIBUTE_DIRECTORY, absolutePath, FILE_ATTRIBUTE_NORMAL);
-
-	if(result.m_strPath.GetLength() > 2 &&
-		result.m_strPath[0] == L'.' &&
-		result.m_strPath[1] == L'\\')
-	{
-		result.m_strPath = result.m_strPath.Right(result.m_strPath.GetLength() - 2);
-	}
-
-	return result;
 }
