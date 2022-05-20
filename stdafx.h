@@ -33,6 +33,7 @@ extern CAppModule _Module;
 
 #include <oleacc.h>
 #include <psapi.h>
+#include <uiautomationclient.h>
 #include <wininet.h>
 
 #include <optional>

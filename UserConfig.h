@@ -33,6 +33,7 @@ public:
 	bool m_autoCopySelection;
 	bool m_hideTrayIcon;
 	bool m_unicodeSpacesToAscii;
+	bool m_useLegacyMsaaApi;
 	int m_webButtonsIconSize;
 	int m_webButtonsPerRow;
 	std::vector<WebButtonInfo> m_webButtonInfos;

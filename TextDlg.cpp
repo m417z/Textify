@@ -6,7 +6,8 @@
 
 namespace
 {
-	void GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
+	void GetAccessibleInfoFromPointMSAA(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
+	bool GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
 	void UnicodeSpacesToAscii(CString& string);
 	int MyGetDpiForWindow(HWND hWnd);
 	int ScaleForWindow(HWND hWnd, int value);
@@ -28,7 +29,11 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	CWindow wndAcc;
 	CString strText;
 	CRect rcAccObject;
-	GetAccessibleInfoFromPoint(ptEvent, wndAcc, strText, rcAccObject, m_editIndexes);
+	if(m_config.m_useLegacyMsaaApi ||
+		!GetAccessibleInfoFromPoint(ptEvent, wndAcc, strText, rcAccObject, m_editIndexes))
+	{
+		GetAccessibleInfoFromPointMSAA(ptEvent, wndAcc, strText, rcAccObject, m_editIndexes);
+	}
 
 	// Check whether the target window is another TextDlg.
 	if(wndAcc)
@@ -484,7 +489,7 @@ void CTextDlg::OnSelectionMaybeChanged()
 
 namespace
 {
-	void GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes)
+	void GetAccessibleInfoFromPointMSAA(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes)
 	{
 		outString.Empty();
 		outRc = CRect{ pt, CSize{ 0, 0 } };
@@ -609,6 +614,159 @@ namespace
 		{
 			outRc = CRect{ CPoint{ pxLeft, pyTop }, CSize{ pcxWidth, pcyHeight } };
 		}
+	}
+
+	bool GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes)
+	{
+		outString.Empty();
+		outRc = CRect{ pt, CSize{ 0, 0 } };
+		outIndexes = std::vector<int>();
+
+		HRESULT hr;
+
+		CComPtr<IUIAutomation> uia;
+		hr = uia.CoCreateInstance(CLSID_CUIAutomation);
+		if(FAILED(hr) || !uia)
+		{
+			return false;
+		}
+
+		CComPtr<IUIAutomationElement> element;
+		hr = uia->ElementFromPoint(pt, &element);
+		if(FAILED(hr) || !element)
+		{
+			return true;
+		}
+
+		int processId = 0;
+		hr = element->get_CurrentProcessId(&processId);
+		if(FAILED(hr))
+		{
+			return true;
+		}
+
+		while(true)
+		{
+			CString string;
+			std::vector<int> indexes;
+
+			CComBSTR bsName;
+			hr = element->get_CurrentName(&bsName);
+			if(SUCCEEDED(hr) && bsName.Length() > 0)
+			{
+				string = bsName;
+			}
+
+			CComVariant varValue;
+			hr = element->GetCurrentPropertyValue(UIA_ValueValuePropertyId, &varValue);
+			if(SUCCEEDED(hr) && varValue.vt == VT_BSTR)
+			{
+				CComBSTR bsValue = varValue.bstrVal;
+				if(bsValue.Length() > 0 && bsValue != bsName)
+				{
+					if(!string.IsEmpty())
+					{
+						string += L"\r\n";
+						indexes.push_back(string.GetLength());
+					}
+
+					string += bsValue;
+				}
+			}
+
+			if(!string.IsEmpty())
+			{
+				// Normalize newlines.
+				string.Replace(L"\r\n", L"\n");
+				string.Replace(L"\r", L"\n");
+				string.Replace(L"\n", L"\r\n");
+
+				string.TrimRight();
+
+				if(!string.IsEmpty())
+				{
+					outString = string;
+					outIndexes = indexes;
+					break;
+				}
+			}
+
+			CComPtr<IUIAutomationCondition> trueCondition;
+			hr = uia->CreateTrueCondition(&trueCondition);
+			if(FAILED(hr) || !trueCondition)
+			{
+				break;
+			}
+
+			CComPtr<IUIAutomationTreeWalker> treeWalker;
+			hr = uia->CreateTreeWalker(trueCondition, &treeWalker);
+			if(FAILED(hr) || !treeWalker)
+			{
+				break;
+			}
+
+			CComPtr<IUIAutomationElement> parentElement;
+			hr = treeWalker->GetParentElement(element, &parentElement);
+			if(FAILED(hr) || !parentElement)
+			{
+				break;
+			}
+
+			element.Attach(parentElement.Detach());
+
+			int compareProcessId = 0;
+			hr = element->get_CurrentProcessId(&compareProcessId);
+			if(FAILED(hr) || compareProcessId != processId)
+			{
+				break;
+			}
+		}
+
+		hr = element->get_CurrentNativeWindowHandle((UIA_HWND*)&window.m_hWnd);
+		if(SUCCEEDED(hr) && !window)
+		{
+			CComPtr<IUIAutomationCondition> trueCondition;
+			hr = uia->CreateTrueCondition(&trueCondition);
+			if(SUCCEEDED(hr) && trueCondition)
+			{
+				CComPtr<IUIAutomationTreeWalker> treeWalker;
+				hr = uia->CreateTreeWalker(trueCondition, &treeWalker);
+				if(SUCCEEDED(hr) && treeWalker)
+				{
+					CComPtr<IUIAutomationElement> parentElement;
+					hr = treeWalker->GetParentElement(element, &parentElement);
+					if(SUCCEEDED(hr) && parentElement)
+					{
+						while(true)
+						{
+							hr = parentElement->get_CurrentNativeWindowHandle((UIA_HWND*)&window.m_hWnd);
+							if(FAILED(hr) || window)
+							{
+								break;
+							}
+
+							CComPtr<IUIAutomationElement> nextParentElement;
+							hr = treeWalker->GetParentElement(parentElement, &nextParentElement);
+							if(FAILED(hr) || !parentElement)
+							{
+								break;
+							}
+
+							parentElement.Attach(nextParentElement.Detach());
+						}
+					}
+				}
+			}
+		}
+
+		CRect boundingRc;
+		hr = element->get_CurrentBoundingRectangle(&boundingRc);
+		if(SUCCEEDED(hr))
+		{
+			outRc = boundingRc;
+		}
+
+		return true;
 	}
 
 	void UnicodeSpacesToAscii(CString& string)
