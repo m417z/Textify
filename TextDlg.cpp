@@ -586,10 +586,9 @@ namespace
 				}
 
 				CComQIPtr<IAccessible> pAccParent(pDispParent);
-				pAcc.Attach(pAccParent.Detach());
 
 				HWND hWnd;
-				hr = WindowFromAccessibleObject(pAcc, &hWnd);
+				hr = WindowFromAccessibleObject(pAccParent, &hWnd);
 				if(FAILED(hr))
 				{
 					break;
@@ -601,6 +600,8 @@ namespace
 				{
 					break;
 				}
+
+				pAcc.Attach(pAccParent.Detach());
 			}
 			else
 			{
@@ -712,14 +713,14 @@ namespace
 				break;
 			}
 
-			element.Attach(parentElement.Detach());
-
 			int compareProcessId = 0;
-			hr = element->get_CurrentProcessId(&compareProcessId);
+			hr = parentElement->get_CurrentProcessId(&compareProcessId);
 			if(FAILED(hr) || compareProcessId != processId)
 			{
 				break;
 			}
+
+			element.Attach(parentElement.Detach());
 		}
 
 		hr = element->get_CurrentNativeWindowHandle((UIA_HWND*)&window.m_hWnd);
