@@ -628,23 +628,103 @@ namespace
 		CComPtr<IUIAutomation> uia;
 		hr = uia.CoCreateInstance(CLSID_CUIAutomation);
 		if(FAILED(hr) || !uia)
-		{
 			return false;
-		}
 
 		CComPtr<IUIAutomationElement> element;
 		hr = uia->ElementFromPoint(pt, &element);
 		if(FAILED(hr) || !element)
-		{
 			return true;
+
+		// Chromium has a bug in which the correct element is sometimes
+		// returned only after a second query. Do it.
+		element.Release();
+		hr = uia->ElementFromPoint(pt, &element);
+		if(FAILED(hr) || !element)
+			return true;
+
+		CComPtr<IUIAutomationCondition> trueCondition;
+		hr = uia->CreateTrueCondition(&trueCondition);
+		if(FAILED(hr) || !trueCondition)
+			return true;
+
+		CComPtr<IUIAutomationTreeWalker> treeWalker;
+		hr = uia->CreateTreeWalker(trueCondition, &treeWalker);
+		if(FAILED(hr) || !treeWalker)
+			return true;
+
+		// Walk through child elements and try to navigate to a deeper element.
+		// This improves the results in case ElementFromPoint returned an
+		// element which is not the deepest. It happens sometimes, e.g. with
+		// links in Chromium or with the Textify text above the "Homepage" link.
+		// It's not perfect, e.g. it doesn't seem to work in Gmail which has a
+		// complex layout, but it works in many other places.
+		while(true)
+		{
+			CComPtr<IUIAutomationElement> candidateChildElement;
+
+			CComPtr<IUIAutomationElement> iterChildElement;
+			hr = treeWalker->GetFirstChildElement(element, &iterChildElement);
+			while(SUCCEEDED(hr) && iterChildElement)
+			{
+				CRect iterChildRect;
+				hr = iterChildElement->get_CurrentBoundingRectangle(iterChildRect);
+				if(FAILED(hr))
+				{
+					candidateChildElement.Release();
+					break;
+				}
+
+				bool isCandidate = iterChildRect.PtInRect(pt);
+				if(isCandidate)
+				{
+					// Skip Chromium's "Intermediate D3D Window" window to be
+					// able to capture tab labels.
+					CWindow iterChildWindow;
+					hr = iterChildElement->get_CurrentNativeWindowHandle((UIA_HWND*)&iterChildWindow.m_hWnd);
+					if(SUCCEEDED(hr) && iterChildWindow)
+					{
+						WCHAR szClassName[32];
+						if(::GetClassName(iterChildWindow, szClassName, ARRAYSIZE(szClassName)) &&
+							_wcsicmp(szClassName, L"Intermediate D3D Window") == 0)
+						{
+							isCandidate = false;
+						}
+					}
+				}
+
+				if(isCandidate)
+				{
+					if(candidateChildElement)
+					{
+						// More than one potential match. Choose neither.
+						candidateChildElement.Release();
+						break;
+					}
+
+					iterChildElement.CopyTo(&candidateChildElement);
+				}
+
+				CComPtr<IUIAutomationElement> nextChildElement;
+				hr = treeWalker->GetNextSiblingElement(iterChildElement, &nextChildElement);
+				if(FAILED(hr))
+				{
+					candidateChildElement.Release();
+					break;
+				}
+
+				iterChildElement.Attach(nextChildElement.Detach());
+			}
+
+			if(!candidateChildElement)
+				break;
+
+			element.Attach(candidateChildElement.Detach());
 		}
 
 		int processId = 0;
 		hr = element->get_CurrentProcessId(&processId);
 		if(FAILED(hr))
-		{
 			return true;
-		}
 
 		while(true)
 		{
@@ -692,33 +772,15 @@ namespace
 				}
 			}
 
-			CComPtr<IUIAutomationCondition> trueCondition;
-			hr = uia->CreateTrueCondition(&trueCondition);
-			if(FAILED(hr) || !trueCondition)
-			{
-				break;
-			}
-
-			CComPtr<IUIAutomationTreeWalker> treeWalker;
-			hr = uia->CreateTreeWalker(trueCondition, &treeWalker);
-			if(FAILED(hr) || !treeWalker)
-			{
-				break;
-			}
-
 			CComPtr<IUIAutomationElement> parentElement;
 			hr = treeWalker->GetParentElement(element, &parentElement);
 			if(FAILED(hr) || !parentElement)
-			{
 				break;
-			}
 
 			int compareProcessId = 0;
 			hr = parentElement->get_CurrentProcessId(&compareProcessId);
 			if(FAILED(hr) || compareProcessId != processId)
-			{
 				break;
-			}
 
 			element.Attach(parentElement.Detach());
 		}
@@ -726,36 +788,22 @@ namespace
 		hr = element->get_CurrentNativeWindowHandle((UIA_HWND*)&window.m_hWnd);
 		if(SUCCEEDED(hr) && !window)
 		{
-			CComPtr<IUIAutomationCondition> trueCondition;
-			hr = uia->CreateTrueCondition(&trueCondition);
-			if(SUCCEEDED(hr) && trueCondition)
+			CComPtr<IUIAutomationElement> parentElement;
+			hr = treeWalker->GetParentElement(element, &parentElement);
+			if(SUCCEEDED(hr) && parentElement)
 			{
-				CComPtr<IUIAutomationTreeWalker> treeWalker;
-				hr = uia->CreateTreeWalker(trueCondition, &treeWalker);
-				if(SUCCEEDED(hr) && treeWalker)
+				while(true)
 				{
-					CComPtr<IUIAutomationElement> parentElement;
-					hr = treeWalker->GetParentElement(element, &parentElement);
-					if(SUCCEEDED(hr) && parentElement)
-					{
-						while(true)
-						{
-							hr = parentElement->get_CurrentNativeWindowHandle((UIA_HWND*)&window.m_hWnd);
-							if(FAILED(hr) || window)
-							{
-								break;
-							}
+					hr = parentElement->get_CurrentNativeWindowHandle((UIA_HWND*)&window.m_hWnd);
+					if(FAILED(hr) || window)
+						break;
 
-							CComPtr<IUIAutomationElement> nextParentElement;
-							hr = treeWalker->GetParentElement(parentElement, &nextParentElement);
-							if(FAILED(hr) || !parentElement)
-							{
-								break;
-							}
+					CComPtr<IUIAutomationElement> nextParentElement;
+					hr = treeWalker->GetParentElement(parentElement, &nextParentElement);
+					if(FAILED(hr) || !parentElement)
+						break;
 
-							parentElement.Attach(nextParentElement.Detach());
-						}
-					}
+					parentElement.Attach(nextParentElement.Detach());
 				}
 			}
 		}
