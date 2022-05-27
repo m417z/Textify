@@ -18,6 +18,13 @@ struct WebButtonInfo
 	int height;
 };
 
+enum class TextRetrievalMethod
+{
+	default,
+	msaa,
+	uia
+};
+
 class UserConfig
 {
 public:
@@ -33,7 +40,7 @@ public:
 	bool m_autoCopySelection;
 	bool m_hideTrayIcon;
 	bool m_unicodeSpacesToAscii;
-	bool m_useLegacyMsaaApi;
+	TextRetrievalMethod m_textRetrievalMethod;
 	int m_webButtonsIconSize;
 	int m_webButtonsPerRow;
 	std::vector<WebButtonInfo> m_webButtonInfos;

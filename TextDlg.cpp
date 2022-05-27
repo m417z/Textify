@@ -6,8 +6,9 @@
 
 namespace
 {
-	void GetAccessibleInfoFromPointMSAA(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
-	bool GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
+	void GetAccessibleInfoFromPointMSAA(POINT pt, CWindow& outWindow, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
+	bool GetAccessibleInfoFromPointUIA(POINT pt, CWindow& outWindow, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
+	void GetAccessibleInfoFromPoint(TextRetrievalMethod method, POINT pt, CWindow& outWindow, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
 	void UnicodeSpacesToAscii(CString& string);
 	int MyGetDpiForWindow(HWND hWnd);
 	int ScaleForWindow(HWND hWnd, int value);
@@ -29,11 +30,7 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	CWindow wndAcc;
 	CString strText;
 	CRect rcAccObject;
-	if(m_config.m_useLegacyMsaaApi ||
-		!GetAccessibleInfoFromPoint(ptEvent, wndAcc, strText, rcAccObject, m_editIndexes))
-	{
-		GetAccessibleInfoFromPointMSAA(ptEvent, wndAcc, strText, rcAccObject, m_editIndexes);
-	}
+	GetAccessibleInfoFromPoint(m_config.m_textRetrievalMethod, ptEvent, wndAcc, strText, rcAccObject, m_editIndexes);
 
 	// Check whether the target window is another TextDlg.
 	if(wndAcc)
@@ -489,7 +486,7 @@ void CTextDlg::OnSelectionMaybeChanged()
 
 namespace
 {
-	void GetAccessibleInfoFromPointMSAA(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes)
+	void GetAccessibleInfoFromPointMSAA(POINT pt, CWindow& outWindow, CString& outString, CRect& outRc, std::vector<int>& outIndexes)
 	{
 		outString.Empty();
 		outRc = CRect{ pt, CSize{ 0, 0 } };
@@ -500,19 +497,22 @@ namespace
 		CComPtr<IAccessible> pAcc;
 		CComVariant vtChild;
 		hr = AccessibleObjectFromPoint(pt, &pAcc, &vtChild);
-		if(FAILED(hr))
-		{
+		if(FAILED(hr) || !pAcc)
 			return;
-		}
 
-		hr = WindowFromAccessibleObject(pAcc, &window.m_hWnd);
-		if(FAILED(hr))
-		{
+		// Chromium has a bug in which the correct element is sometimes
+		// returned only after a second query. Do it.
+		pAcc.Release();
+		hr = AccessibleObjectFromPoint(pt, &pAcc, &vtChild);
+		if(FAILED(hr) || !pAcc)
 			return;
-		}
+
+		hr = WindowFromAccessibleObject(pAcc, &outWindow.m_hWnd);
+		if(FAILED(hr))
+			return;
 
 		DWORD processId = 0;
-		GetWindowThreadProcessId(window.m_hWnd, &processId);
+		GetWindowThreadProcessId(outWindow.m_hWnd, &processId);
 
 		while(true)
 		{
@@ -581,25 +581,19 @@ namespace
 				CComPtr<IDispatch> pDispParent;
 				HRESULT hr = pAcc->get_accParent(&pDispParent);
 				if(FAILED(hr) || !pDispParent)
-				{
 					break;
-				}
 
 				CComQIPtr<IAccessible> pAccParent(pDispParent);
 
 				HWND hWnd;
 				hr = WindowFromAccessibleObject(pAccParent, &hWnd);
 				if(FAILED(hr))
-				{
 					break;
-				}
 
 				DWORD compareProcessId = 0;
 				GetWindowThreadProcessId(hWnd, &compareProcessId);
 				if(compareProcessId != processId)
-				{
 					break;
-				}
 
 				pAcc.Attach(pAccParent.Detach());
 			}
@@ -617,7 +611,7 @@ namespace
 		}
 	}
 
-	bool GetAccessibleInfoFromPoint(POINT pt, CWindow& window, CString& outString, CRect& outRc, std::vector<int>& outIndexes)
+	bool GetAccessibleInfoFromPointUIA(POINT pt, CWindow& outWindow, CString& outString, CRect& outRc, std::vector<int>& outIndexes)
 	{
 		outString.Empty();
 		outRc = CRect{ pt, CSize{ 0, 0 } };
@@ -651,75 +645,6 @@ namespace
 		hr = uia->CreateTreeWalker(trueCondition, &treeWalker);
 		if(FAILED(hr) || !treeWalker)
 			return true;
-
-		// Walk through child elements and try to navigate to a deeper element.
-		// This improves the results in case ElementFromPoint returned an
-		// element which is not the deepest. It happens sometimes, e.g. with
-		// links in Chromium or with the Textify text above the "Homepage" link.
-		// It's not perfect, e.g. it doesn't seem to work in Gmail which has a
-		// complex layout, but it works in many other places.
-		while(true)
-		{
-			CComPtr<IUIAutomationElement> candidateChildElement;
-
-			CComPtr<IUIAutomationElement> iterChildElement;
-			hr = treeWalker->GetFirstChildElement(element, &iterChildElement);
-			while(SUCCEEDED(hr) && iterChildElement)
-			{
-				CRect iterChildRect;
-				hr = iterChildElement->get_CurrentBoundingRectangle(iterChildRect);
-				if(FAILED(hr))
-				{
-					candidateChildElement.Release();
-					break;
-				}
-
-				bool isCandidate = iterChildRect.PtInRect(pt);
-				if(isCandidate)
-				{
-					// Skip Chromium's "Intermediate D3D Window" window to be
-					// able to capture tab labels.
-					CWindow iterChildWindow;
-					hr = iterChildElement->get_CurrentNativeWindowHandle((UIA_HWND*)&iterChildWindow.m_hWnd);
-					if(SUCCEEDED(hr) && iterChildWindow)
-					{
-						WCHAR szClassName[32];
-						if(::GetClassName(iterChildWindow, szClassName, ARRAYSIZE(szClassName)) &&
-							_wcsicmp(szClassName, L"Intermediate D3D Window") == 0)
-						{
-							isCandidate = false;
-						}
-					}
-				}
-
-				if(isCandidate)
-				{
-					if(candidateChildElement)
-					{
-						// More than one potential match. Choose neither.
-						candidateChildElement.Release();
-						break;
-					}
-
-					iterChildElement.CopyTo(&candidateChildElement);
-				}
-
-				CComPtr<IUIAutomationElement> nextChildElement;
-				hr = treeWalker->GetNextSiblingElement(iterChildElement, &nextChildElement);
-				if(FAILED(hr))
-				{
-					candidateChildElement.Release();
-					break;
-				}
-
-				iterChildElement.Attach(nextChildElement.Detach());
-			}
-
-			if(!candidateChildElement)
-				break;
-
-			element.Attach(candidateChildElement.Detach());
-		}
 
 		int processId = 0;
 		hr = element->get_CurrentProcessId(&processId);
@@ -785,8 +710,8 @@ namespace
 			element.Attach(parentElement.Detach());
 		}
 
-		hr = element->get_CurrentNativeWindowHandle((UIA_HWND*)&window.m_hWnd);
-		if(SUCCEEDED(hr) && !window)
+		hr = element->get_CurrentNativeWindowHandle((UIA_HWND*)&outWindow.m_hWnd);
+		if(SUCCEEDED(hr) && !outWindow)
 		{
 			CComPtr<IUIAutomationElement> parentElement;
 			hr = treeWalker->GetParentElement(element, &parentElement);
@@ -794,8 +719,8 @@ namespace
 			{
 				while(true)
 				{
-					hr = parentElement->get_CurrentNativeWindowHandle((UIA_HWND*)&window.m_hWnd);
-					if(FAILED(hr) || window)
+					hr = parentElement->get_CurrentNativeWindowHandle((UIA_HWND*)&outWindow.m_hWnd);
+					if(FAILED(hr) || outWindow)
 						break;
 
 					CComPtr<IUIAutomationElement> nextParentElement;
@@ -816,6 +741,57 @@ namespace
 		}
 
 		return true;
+	}
+
+	void GetAccessibleInfoFromPoint(TextRetrievalMethod method, POINT pt, CWindow& outWindow, CString& outString, CRect& outRc, std::vector<int>& outIndexes)
+	{
+		if(method == TextRetrievalMethod::msaa)
+		{
+			GetAccessibleInfoFromPointMSAA(pt, outWindow, outString, outRc, outIndexes);
+			return;
+		}
+
+		if(method == TextRetrievalMethod::uia)
+		{
+			GetAccessibleInfoFromPointUIA(pt, outWindow, outString, outRc, outIndexes);
+			return;
+		}
+
+		// Both MSAA and UIA have downsides specific to them:
+		// MSAA: Isn't supported by new programs, e.g. the taskbar in Windows 11.
+		// UIA: The returned element is not the deepest, e.g. with links in
+		// Chromium or with the Textify text above the "Homepage" link.
+		// As an attempt to choose the best result, both are used, and the MSAA
+		// result is returned if its rectangle is smaller, in the assumption
+		// that it's a deeper element and a better result.
+
+		if(!GetAccessibleInfoFromPointUIA(pt, outWindow, outString, outRc, outIndexes))
+		{
+			GetAccessibleInfoFromPointMSAA(pt, outWindow, outString, outRc, outIndexes);
+			return;
+		}
+
+		CWindow outWindowMsaa;
+		CString outStringMsaa;
+		CRect outRcMsaa;
+		GetAccessibleInfoFromPointMSAA(pt, outWindowMsaa, outStringMsaa, outRcMsaa, outIndexes);
+
+		if(
+			outRcMsaa.left >= outRc.left &&
+			outRcMsaa.top >= outRc.top &&
+			outRcMsaa.right <= outRc.right &&
+			outRcMsaa.bottom <= outRc.bottom && (
+				outRcMsaa.left > outRc.left ||
+				outRcMsaa.top > outRc.top ||
+				outRcMsaa.right < outRc.right ||
+				outRcMsaa.bottom < outRc.bottom
+				)
+			)
+		{
+			outWindow = outWindowMsaa;
+			outString = outStringMsaa;
+			outRc = outRcMsaa;
+		}
 	}
 
 	void UnicodeSpacesToAscii(CString& string)
