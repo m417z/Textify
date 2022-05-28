@@ -12,21 +12,32 @@ namespace
 		return iniFilePath;
 	}
 
-	CPath RelativeToAbsolutePath(CPath relativePath)
+	// Receives a path with an optional index, e.g.:
+	// C:\path\to\awesome.exe,101
+	// Removes the index from the string and returns it.
+	int ExtractIconIndex(PWSTR pathWithOptionalIndex)
 	{
-		CPath moduleFileNamePath;
+		size_t len = wcslen(pathWithOptionalIndex);
+		for(size_t i = len - 1; i > 0; i--)
+		{
+			WCHAR p = pathWithOptionalIndex[i];
+			if(p == ',')
+			{
+				if(i == len - 1)
+					break;
 
-		GetModuleFileName(NULL, moduleFileNamePath.m_strPath.GetBuffer(MAX_PATH), MAX_PATH);
-		moduleFileNamePath.m_strPath.ReleaseBuffer();
-		moduleFileNamePath.RemoveFileSpec();
+				pathWithOptionalIndex[i] = L'\0';
+				return _wtoi(pathWithOptionalIndex + i + 1);
+			}
 
-		CPath result;
-		result.Combine(moduleFileNamePath, relativePath);
+			if(p < L'0' && p > L'9')
+				break;
+		}
 
-		return result;
+		return 0;
 	}
 
-	CPath AbsoluteToRelativePath(CPath absolutePath)
+	CPath RelativeToAbsolutePathExpanded(PWSTR relativePath)
 	{
 		CPath moduleFileNamePath;
 
@@ -34,15 +45,13 @@ namespace
 		moduleFileNamePath.m_strPath.ReleaseBuffer();
 		moduleFileNamePath.RemoveFileSpec();
 
-		CPath result;
-		result.RelativePathTo(moduleFileNamePath, FILE_ATTRIBUTE_DIRECTORY, absolutePath, FILE_ATTRIBUTE_NORMAL);
+		CString relativePathExpanded;
+		DWORD relativePathExpandedSize = ExpandEnvironmentStrings(relativePath, nullptr, 0);
+		ExpandEnvironmentStrings(relativePath, relativePathExpanded.GetBuffer(relativePathExpandedSize), relativePathExpandedSize);
+		relativePathExpanded.ReleaseBuffer();
 
-		if(result.m_strPath.GetLength() > 2 &&
-			result.m_strPath[0] == L'.' &&
-			result.m_strPath[1] == L'\\')
-		{
-			result.m_strPath = result.m_strPath.Right(result.m_strPath.GetLength() - 2);
-		}
+		CPath result;
+		result.Combine(moduleFileNamePath, relativePathExpanded);
 
 		return result;
 	}
@@ -107,7 +116,8 @@ bool UserConfig::LoadFromIniFile()
 		GetPrivateProfileString(iniSectionName, L"icon", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
 		if(*szBuffer != L'\0')
 		{
-			webButtonInfo.iconPath = RelativeToAbsolutePath(szBuffer);
+			webButtonInfo.iconIndex = ExtractIconIndex(szBuffer);
+			webButtonInfo.iconPath = RelativeToAbsolutePathExpanded(szBuffer);
 		}
 
 		GetPrivateProfileString(iniSectionName, L"key", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
@@ -161,57 +171,6 @@ bool UserConfig::SaveToIniFile() const
 		succeeded = false;
 
 	// Don't write the other configuration, as there's no GUI for it.
-
-	/*str.Format(L"%d", m_keybdHotKey.key);
-	if(!WritePrivateProfileString(L"keyboard", L"key", str, iniFilePath))
-		succeeded = false;
-
-	str.Format(L"%d", m_keybdHotKey.ctrl ? 1 : 0);
-	if(!WritePrivateProfileString(L"keyboard", L"ctrl", str, iniFilePath))
-		succeeded = false;
-
-	str.Format(L"%d", m_keybdHotKey.alt ? 1 : 0);
-	if(!WritePrivateProfileString(L"keyboard", L"alt", str, iniFilePath))
-		succeeded = false;
-
-	str.Format(L"%d", m_keybdHotKey.shift ? 1 : 0);
-	if(!WritePrivateProfileString(L"keyboard", L"shift", str, iniFilePath))
-		succeeded = false;
-
-	for(int i = 1; ; i++)
-	{
-		CString iniSectionName;
-		iniSectionName.Format(L"web_button_%d", i);
-
-		if(static_cast<int>(m_webButtonInfos.size()) < i)
-		{
-			if(!WritePrivateProfileString(iniSectionName, nullptr, nullptr, iniFilePath))
-				succeeded = false;
-
-			continue;
-		}
-
-		WebButtonInfo& webButtonInfo = m_webButtonInfos[i - 1];
-
-		CPath relativeIconPath = AbsoluteToRelativePath(webButtonInfo.iconPath);
-		if(!WritePrivateProfileString(iniSectionName, L"icon", relativeIconPath.m_strPath, iniFilePath))
-			succeeded = false;
-
-		if(!WritePrivateProfileString(iniSectionName, L"url", webButtonInfo.url, iniFilePath))
-			succeeded = false;
-
-		str.Format(L"%d", webButtonInfo.externalBrowser ? 1 : 0);
-		if(!WritePrivateProfileString(iniSectionName, L"external_browser", str, iniFilePath))
-			succeeded = false;
-
-		str.Format(L"%d", webButtonInfo.width);
-		if(!WritePrivateProfileString(iniSectionName, L"width", str, iniFilePath))
-			succeeded = false;
-
-		str.Format(L"%d", webButtonInfo.height);
-		if(!WritePrivateProfileString(iniSectionName, L"height", str, iniFilePath))
-			succeeded = false;
-	}*/
 
 	return succeeded;
 }

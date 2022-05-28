@@ -370,9 +370,11 @@ void CTextDlg::InitWebAppButtons()
 
 		if(!m_config.m_webButtonInfos[i].iconPath.m_strPath.IsEmpty())
 		{
-			HICON icon = (HICON)::LoadImage(nullptr, m_config.m_webButtonInfos[i].iconPath.m_strPath.GetString(),
-				IMAGE_ICON, buttonSize, buttonSize, LR_LOADFROMFILE);
-			if(icon)
+			HICON icon;
+			if(::SHDefExtractIcon(
+				m_config.m_webButtonInfos[i].iconPath.m_strPath,
+				m_config.m_webButtonInfos[i].iconIndex,
+				0, &icon, nullptr, buttonSize) == S_OK)
 			{
 				button.ModifyStyle(0, BS_ICON);
 				button.SetIcon(icon);
