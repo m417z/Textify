@@ -106,13 +106,23 @@ HBRUSH CTextDlg::OnCtlColorStatic(CDCHandle dc, CStatic wndStatic)
 
 void CTextDlg::OnActivate(UINT nState, BOOL bMinimized, CWindow wndOther)
 {
-	if(nState == WA_INACTIVE && !m_showingModalBrowserHost)
+	if(nState == WA_INACTIVE && !m_pinned && !m_showingModalBrowserHost)
 		EndDialog(0);
 }
 
 void CTextDlg::OnCancel(UINT uNotifyCode, int nID, CWindow wndCtl)
 {
 	EndDialog(nID);
+}
+
+void CTextDlg::OnTextChange(UINT uNotifyCode, int nID, CWindow wndCtl)
+{
+	MakePinned();
+}
+
+void CTextDlg::OnExitSizeMove()
+{
+	MakePinned();
 }
 
 void CTextDlg::OnCommand(UINT uNotifyCode, int nID, CWindow wndCtl)
@@ -152,6 +162,82 @@ void CTextDlg::OnCommand(UINT uNotifyCode, int nID, CWindow wndCtl)
 
 		EndDialog(0);
 	}
+}
+
+void CTextDlg::OnGetMinMaxInfo(LPMINMAXINFO lpMMI)
+{
+	lpMMI->ptMinTrackSize.x = m_minSize.cx;
+	lpMMI->ptMinTrackSize.y = m_minSize.cy;
+}
+
+void CTextDlg::OnSize(UINT nType, CSize size)
+{
+	if(nType != SIZE_RESTORED && nType != SIZE_MAXIMIZED)
+		return;
+
+	CRect clientRect;
+	GetClientRect(&clientRect);
+
+	int numberOfWebAppButtons = static_cast<int>(m_config.m_webButtonInfos.size());
+
+	CButton webAppButtonLast;
+	if(numberOfWebAppButtons > 0)
+	{
+		CButton button = GetDlgItem(IDC_WEB_BUTTON_1 - 1 + numberOfWebAppButtons);
+		if(button && button.IsWindowVisible())
+		{
+			webAppButtonLast = button;
+		}
+		else
+		{
+			numberOfWebAppButtons = 0;
+		}
+	}
+
+	HDWP hDwp = ::BeginDeferWindowPos(numberOfWebAppButtons + 1);
+	if(!hDwp)
+		return;
+
+	int firstButtonTop = clientRect.Height();
+	if(webAppButtonLast)
+	{
+		CRect webAppButtonLastRect;
+		webAppButtonLast.GetWindowRect(&webAppButtonLastRect);
+		::MapWindowPoints(nullptr, m_hWnd, &webAppButtonLastRect.TopLeft(), 2);
+
+		int newTop = clientRect.Height() - webAppButtonLastRect.Height();
+		int heightDelta = newTop - webAppButtonLastRect.top;
+
+		webAppButtonLast.DeferWindowPos(hDwp, nullptr,
+			webAppButtonLastRect.left, webAppButtonLastRect.top + heightDelta,
+			webAppButtonLastRect.Width(), webAppButtonLastRect.Height(),
+			SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+
+		for(int i = numberOfWebAppButtons - 1; i >= 1; i--)
+		{
+			CButton button = GetDlgItem(IDC_WEB_BUTTON_1 - 1 + i);
+
+			CRect buttonRect;
+			button.GetWindowRect(&buttonRect);
+			::MapWindowPoints(nullptr, m_hWnd, &buttonRect.TopLeft(), 2);
+
+			if(i == 1)
+			{
+				firstButtonTop = buttonRect.top + heightDelta;
+			}
+
+			button.DeferWindowPos(hDwp, nullptr,
+				buttonRect.left, buttonRect.top + heightDelta,
+				buttonRect.Width(), buttonRect.Height(),
+				SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+		}
+	}
+
+	CEdit editWnd = GetDlgItem(IDC_EDIT);
+	editWnd.DeferWindowPos(hDwp, nullptr, 0, 0, clientRect.Width(), firstButtonTop,
+		SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+
+	::EndDeferWindowPos(hDwp);
 }
 
 LRESULT CTextDlg::OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -318,6 +404,8 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 	CSize defTextSize = GetEditControlTextSize(editWnd, strDefaultText);
 	CSize defTextSizeClient = TextSizeToEditClientSize(m_hWnd, editWnd, defTextSize);
 
+	m_minSize.cy = defTextSizeClient.cy;
+
 	int nMaxClientWidth = defTextSizeClient.cx > rcAccObject.Width() ? defTextSizeClient.cx : rcAccObject.Width();
 
 	CSize textSize = GetEditControlTextSize(editWnd, strText, nMaxClientWidth);
@@ -373,6 +461,14 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 			rcClient.right = rcClient.left + webAppButtonSize.cx * numberOfWebAppButtonsX;
 
 		rcClient.bottom += webAppButtonSize.cy * numberOfWebAppButtonsY;
+
+		m_minSize.cx = webAppButtonSize.cx * numberOfWebAppButtonsX;
+		m_minSize.cy += webAppButtonSize.cy * numberOfWebAppButtonsY;
+	}
+	else
+	{
+		m_minSize.cx = GetSystemMetricsForWindow(m_hWnd, SM_CXICON) +
+			GetSystemMetricsForWindow(m_hWnd, SM_CXVSCROLL);
 	}
 
 	CRect rcWindow{ rcClient };
@@ -463,6 +559,10 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 
 	SetWindowPos(NULL, &rcWindow, SWP_NOZORDER | SWP_NOACTIVATE);
 	editWnd.SetWindowPos(NULL, 0, 0, rcClient.Width(), rcClient.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
+
+	CRect minSizeRect{ CPoint{}, m_minSize };
+	WndAdjustWindowRect(m_hWnd, &minSizeRect);
+	m_minSize = minSizeRect.Size();
 }
 
 void CTextDlg::OnSelectionMaybeChanged()
@@ -482,6 +582,38 @@ void CTextDlg::OnSelectionMaybeChanged()
 			m_lastSelEnd = end;
 		}
 	}
+}
+
+void CTextDlg::MakePinned()
+{
+	if(m_pinned)
+		return;
+
+	CRect rc;
+	GetWindowRect(&rc);
+	WndUnadjustWindowRect(m_hWnd, &rc);
+
+	CRect minSizeRect{ CPoint{}, m_minSize };
+	WndUnadjustWindowRect(m_hWnd, &minSizeRect);
+
+	// Add caption with an exit button.
+	SetWindowText(L"Textify");
+
+	ModifyStyle(0, DS_MODALFRAME | WS_CAPTION | WS_SYSMENU);
+
+	// Note: this causes WM_SIZE to be sent
+	WndAdjustWindowRect(m_hWnd, &rc);
+	SetWindowPos(NULL, rc, SWP_NOZORDER | SWP_FRAMECHANGED);
+
+	WndAdjustWindowRect(m_hWnd, &minSizeRect);
+	m_minSize = minSizeRect.Size();
+
+	m_editIndexes.clear();
+
+	CEdit editWnd = GetDlgItem(IDC_EDIT);
+	editWnd.ShowScrollBar(SB_VERT);
+
+	m_pinned = true;
 }
 
 namespace

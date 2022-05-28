@@ -12,7 +12,11 @@ public:
 		MSG_WM_CTLCOLORSTATIC(OnCtlColorStatic)
 		MSG_WM_ACTIVATE(OnActivate)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnCancel)
+		COMMAND_HANDLER_EX(IDC_EDIT, EN_CHANGE, OnTextChange)
+		MSG_WM_EXITSIZEMOVE(OnExitSizeMove)
 		MSG_WM_COMMAND(OnCommand)
+		MSG_WM_GETMINMAXINFO(OnGetMinMaxInfo)
+		MSG_WM_SIZE(OnSize)
 		MESSAGE_HANDLER_EX(WM_NCHITTEST, OnNcHitTest)
 	ALT_MSG_MAP(1)
 		MSG_WM_KEYDOWN(OnKeyDown)
@@ -32,7 +36,11 @@ public:
 	void OnActivate(UINT nState, BOOL bMinimized, CWindow wndOther);
 	void OnCancel(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnCommand(UINT uNotifyCode, int nID, CWindow wndCtl);
+	void OnGetMinMaxInfo(LPMINMAXINFO lpMMI);
+	void OnSize(UINT nType, CSize size);
 	LRESULT OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	void OnExitSizeMove();
+	void OnTextChange(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnKeyDown(UINT vk, UINT nRepCnt, UINT nFlags);
 	void OnKeyUp(UINT vk, UINT nRepCnt, UINT nFlags);
 	void OnLButtonUp(UINT nFlags, CPoint point);
@@ -45,9 +53,12 @@ private:
 	int m_lastSelStart = 0, m_lastSelEnd = 0;
 	CToolTipCtrl m_webButtonTooltip;
 	std::vector<CIcon> m_webButtonIcons;
+	bool m_pinned = false;
 	bool m_showingModalBrowserHost = false;
+	CSize m_minSize;
 
 	void InitWebAppButtons();
 	void AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CString strText, CString strDefaultText);
 	void OnSelectionMaybeChanged();
+	void MakePinned();
 };
