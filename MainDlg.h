@@ -79,7 +79,7 @@ private:
 	void ConfigToGui();
 	void InitNotifyIconData();
 	void NotifyIconRightClickMenu();
-	void MyEndDialog();
+	void Exit();
 
 	std::optional<UserConfig> m_config;
 	std::optional<MouseGlobalHook> m_mouseGlobalHook;

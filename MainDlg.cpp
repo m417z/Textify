@@ -234,7 +234,7 @@ void CMainDlg::OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl)
 
 void CMainDlg::OnExitButton(UINT uNotifyCode, int nID, CWindow wndCtl)
 {
-	MyEndDialog();
+	Exit();
 }
 
 void CMainDlg::OnConfigChanged(UINT uNotifyCode, int nID, CWindow wndCtl)
@@ -274,7 +274,7 @@ LRESULT CMainDlg::OnCustomTextifyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	switch(lParam)
 	{
 	case 1:
-		MyEndDialog();
+		Exit();
 		break;
 	}
 
@@ -346,7 +346,7 @@ LRESULT CMainDlg::OnUpdateChecked(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 	if(m_closeWhenUpdateCheckDone)
 	{
-		EndDialog(0);
+		::PostQuitMessage(0);
 	}
 
 	return 0;
@@ -354,7 +354,7 @@ LRESULT CMainDlg::OnUpdateChecked(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 LRESULT CMainDlg::OnExit(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	MyEndDialog();
+	Exit();
 	return 0;
 }
 
@@ -590,12 +590,12 @@ void CMainDlg::NotifyIconRightClickMenu()
 		break;
 
 	case RCMENU_EXIT:
-		MyEndDialog();
+		Exit();
 		break;
 	}
 }
 
-void CMainDlg::MyEndDialog()
+void CMainDlg::Exit()
 {
 	if(m_checkingForUpdates)
 	{
@@ -604,6 +604,6 @@ void CMainDlg::MyEndDialog()
 	}
 	else
 	{
-		EndDialog(0);
+		::PostQuitMessage(0);
 	}
 }
