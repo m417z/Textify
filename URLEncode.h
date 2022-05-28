@@ -2,5 +2,5 @@
 
 namespace URLEncoder
 {
-	CStringW Encode(const CStringW& str);
+	CString Encode(const CString& str);
 }
