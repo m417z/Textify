@@ -39,6 +39,7 @@ public:
 	LANGID m_uiLanguage;
 	bool m_checkForUpdates;
 	bool m_autoCopySelection;
+	bool m_hideWndOnStartup;
 	bool m_hideTrayIcon;
 	bool m_unicodeSpacesToAscii;
 	TextRetrievalMethod m_textRetrievalMethod;

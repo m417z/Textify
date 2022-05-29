@@ -9,8 +9,6 @@
 
 BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 {
-	m_hideDialog = (lInitParam != 0);
-
 	// Center the dialog on the screen.
 	CenterWindow();
 
@@ -25,6 +23,11 @@ BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	ApplyUiLanguage();
 	ApplyMouseAndKeyboardHotKeys();
 	ConfigToGui();
+
+	if(lInitParam || m_config->m_hideWndOnStartup)
+	{
+		m_hideDialog = true;
+	}
 
 	// Init and show tray icon.
 	InitNotifyIconData();

@@ -81,6 +81,7 @@ bool UserConfig::LoadFromIniFile()
 	m_uiLanguage = static_cast<LANGID>(GetPrivateProfileInt(L"config", L"ui_language", 0, iniFilePath));
 	m_checkForUpdates = GetPrivateProfileInt(L"config", L"check_for_updates", 1, iniFilePath);
 	m_autoCopySelection = GetPrivateProfileInt(L"config", L"auto_copy_selection", 0, iniFilePath);
+	m_hideWndOnStartup = GetPrivateProfileInt(L"config", L"hide_wnd_on_startup", 0, iniFilePath);
 	m_hideTrayIcon = GetPrivateProfileInt(L"config", L"hide_tray_icon", 0, iniFilePath);
 	m_unicodeSpacesToAscii = GetPrivateProfileInt(L"config", L"unicode_spaces_to_ascii", 0, iniFilePath);
 

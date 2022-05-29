@@ -86,7 +86,7 @@ private:
 	UINT m_uTaskbarCreatedMsg = RegisterWindowMessage(L"TaskbarCreated");
 	UINT m_uTextfiyMsg = RegisterWindowMessage(L"Textify");
 	NOTIFYICONDATA m_notifyIconData = {};
-	bool m_hideDialog;
+	bool m_hideDialog = false;
 	bool m_registeredHotKey = false;
 	bool m_checkingForUpdates = false;
 	bool m_closeWhenUpdateCheckDone = false;
