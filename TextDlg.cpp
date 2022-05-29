@@ -6,6 +6,7 @@
 
 namespace
 {
+	void AppendStringToTextifyResults(CString& string, CString append, std::vector<int>& indexes);
 	void GetAccessibleInfoFromPointMSAA(POINT pt, CWindow& outWindow, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
 	bool GetAccessibleInfoFromPointUIA(POINT pt, CWindow& outWindow, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
 	void GetAccessibleInfoFromPoint(TextRetrievalMethod method, POINT pt, CWindow& outWindow, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
@@ -620,6 +621,26 @@ void CTextDlg::MakePinned()
 
 namespace
 {
+	void AppendStringToTextifyResults(CString& string, CString append, std::vector<int>& indexes)
+	{
+		// Convert all newlines to CRLF and trim trailing newlines.
+		append.Replace(L"\r\n", L"\n");
+		append.Replace(L"\r", L"\n");
+		append.TrimRight(L"\n");
+		append.Replace(L"\n", L"\r\n");
+
+		if(append.IsEmpty())
+			return;
+
+		if(!string.IsEmpty())
+		{
+			string += L"\r\n";
+			indexes.push_back(string.GetLength());
+		}
+
+		string += append;
+	}
+
 	void GetAccessibleInfoFromPointMSAA(POINT pt, CWindow& outWindow, CString& outString, CRect& outRc, std::vector<int>& outIndexes)
 	{
 		outString.Empty();
@@ -655,23 +676,16 @@ namespace
 
 			CComBSTR bsName;
 			hr = pAcc->get_accName(vtChild, &bsName);
-			if(SUCCEEDED(hr) && bsName.Length() > 0)
+			if(SUCCEEDED(hr))
 			{
-				string = bsName;
+				AppendStringToTextifyResults(string, bsName.m_str, indexes);
 			}
 
 			CComBSTR bsValue;
 			hr = pAcc->get_accValue(vtChild, &bsValue);
-			if(SUCCEEDED(hr) && bsValue.Length() > 0 &&
-				bsValue != bsName)
+			if(SUCCEEDED(hr) && bsValue != bsName)
 			{
-				if(!string.IsEmpty())
-				{
-					string += L"\r\n";
-					indexes.push_back(string.GetLength());
-				}
-
-				string += bsValue;
+				AppendStringToTextifyResults(string, bsValue.m_str, indexes);
 			}
 
 			CComVariant vtRole;
@@ -680,34 +694,17 @@ namespace
 			{
 				CComBSTR bsDescription;
 				hr = pAcc->get_accDescription(vtChild, &bsDescription);
-				if(SUCCEEDED(hr) && bsDescription.Length() > 0 &&
-					bsDescription != bsName && bsDescription != bsValue)
+				if(SUCCEEDED(hr) && bsDescription != bsName && bsDescription != bsValue)
 				{
-					if(!string.IsEmpty())
-					{
-						string += L"\r\n";
-						indexes.push_back(string.GetLength());
-					}
-
-					string += bsDescription;
+					AppendStringToTextifyResults(string, bsDescription.m_str, indexes);
 				}
 			}
 
 			if(!string.IsEmpty())
 			{
-				// Normalize newlines.
-				string.Replace(L"\r\n", L"\n");
-				string.Replace(L"\r", L"\n");
-				string.Replace(L"\n", L"\r\n");
-
-				string.TrimRight();
-
-				if(!string.IsEmpty())
-				{
-					outString = string;
-					outIndexes = indexes;
-					break;
-				}
+				outString = string;
+				outIndexes = indexes;
+				break;
 			}
 
 			if(vtChild.lVal == CHILDID_SELF)
@@ -794,41 +791,21 @@ namespace
 			hr = element->get_CurrentName(&bsName);
 			if(SUCCEEDED(hr) && bsName.Length() > 0)
 			{
-				string = bsName;
+				AppendStringToTextifyResults(string, bsName.m_str, indexes);
 			}
 
 			CComVariant varValue;
 			hr = element->GetCurrentPropertyValue(UIA_ValueValuePropertyId, &varValue);
-			if(SUCCEEDED(hr) && varValue.vt == VT_BSTR)
+			if(SUCCEEDED(hr) && varValue.vt == VT_BSTR && varValue.bstrVal != bsName)
 			{
-				CComBSTR bsValue = varValue.bstrVal;
-				if(bsValue.Length() > 0 && bsValue != bsName)
-				{
-					if(!string.IsEmpty())
-					{
-						string += L"\r\n";
-						indexes.push_back(string.GetLength());
-					}
-
-					string += bsValue;
-				}
+				AppendStringToTextifyResults(string, varValue.bstrVal, indexes);
 			}
 
 			if(!string.IsEmpty())
 			{
-				// Normalize newlines.
-				string.Replace(L"\r\n", L"\n");
-				string.Replace(L"\r", L"\n");
-				string.Replace(L"\n", L"\r\n");
-
-				string.TrimRight();
-
-				if(!string.IsEmpty())
-				{
-					outString = string;
-					outIndexes = indexes;
-					break;
-				}
+				outString = string;
+				outIndexes = indexes;
+				break;
 			}
 
 			CComPtr<IUIAutomationElement> parentElement;
@@ -893,13 +870,17 @@ namespace
 
 		// Both MSAA and UIA have downsides specific to them:
 		// MSAA: Isn't supported by new programs, e.g. the taskbar in Windows 11.
-		// UIA: The returned element is not the deepest, e.g. with links in
-		// Chromium or with the Textify text above the "Homepage" link.
+		// UIA: The returned element is not the most nested, e.g. with links in
+		// Chromium or with the Textify text above the "Homepage" link. Also,
+		// Firefox on Windows 7 returns an empty result:
+		// https://bugzilla.mozilla.org/show_bug.cgi?id=1406295
 		// As an attempt to choose the best result, both are used, and the MSAA
-		// result is returned if its rectangle is smaller, in the assumption
-		// that it's a deeper element and a better result.
+		// result is returned if either UIA returns an empty result, or if
+		// MSAA's rectangle is smaller, in the assumption that it's a more
+		// nested element and a better result.
 
-		if(!GetAccessibleInfoFromPointUIA(pt, outWindow, outString, outRc, outIndexes))
+		if(!GetAccessibleInfoFromPointUIA(pt, outWindow, outString, outRc, outIndexes) ||
+			(outString.IsEmpty() && outRc.IsRectNull()))
 		{
 			GetAccessibleInfoFromPointMSAA(pt, outWindow, outString, outRc, outIndexes);
 			return;
