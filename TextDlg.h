@@ -49,6 +49,7 @@ public:
 private:
 	const UserConfig& m_config;
 	CContainedWindowT<CEdit> m_wndEdit;
+	CFont m_editFont;
 	std::vector<int> m_editIndexes;
 	int m_lastSelStart = 0, m_lastSelEnd = 0;
 	CToolTipCtrl m_webButtonTooltip;

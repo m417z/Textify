@@ -41,6 +41,8 @@ public:
 	bool m_autoCopySelection;
 	bool m_hideWndOnStartup;
 	bool m_hideTrayIcon;
+	CString m_fontName;
+	int m_fontSize;
 	bool m_unicodeSpacesToAscii;
 	TextRetrievalMethod m_textRetrievalMethod;
 	int m_webButtonsIconSize;

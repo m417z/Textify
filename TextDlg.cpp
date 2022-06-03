@@ -50,7 +50,7 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 		}
 	}
 
-	// Allows to steal focus
+	// Allows to steal focus.
 	INPUT input{};
 	SendInput(1, &input, sizeof(INPUT));
 
@@ -58,6 +58,28 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	{
 		//EndDialog(0);
 		//return FALSE;
+	}
+
+	CEdit editWnd = GetDlgItem(IDC_EDIT);
+
+	// Init font.
+	if(!m_config.m_fontName.IsEmpty() || m_config.m_fontSize)
+	{
+		CFontHandle font(editWnd.GetFont());
+		CLogFont fontAttributes(font);
+
+		if(!m_config.m_fontName.IsEmpty())
+		{
+			wcscpy_s(fontAttributes.lfFaceName, m_config.m_fontName);
+		}
+
+		if(m_config.m_fontSize)
+		{
+			fontAttributes.lfHeight = -m_config.m_fontSize;
+		}
+
+		m_editFont = fontAttributes.CreateFontIndirect();
+		editWnd.SetFont(m_editFont);
 	}
 
 	InitWebAppButtons();
@@ -75,7 +97,6 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 		strText = strDefaultText;
 	}
 
-	CEdit editWnd = GetDlgItem(IDC_EDIT);
 	editWnd.SetLimitText(0);
 	editWnd.SetWindowText(strText);
 
