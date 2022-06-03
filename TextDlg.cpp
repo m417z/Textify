@@ -658,6 +658,7 @@ namespace
 		// Chromium has a bug in which the correct element is sometimes
 		// returned only after a second query. Do it.
 		pAcc.Release();
+		vtChild.Clear();
 		hr = AccessibleObjectFromPoint(pt, &pAcc, &vtChild);
 		if(FAILED(hr) || !pAcc)
 			return;
@@ -676,14 +677,14 @@ namespace
 
 			CComBSTR bsName;
 			hr = pAcc->get_accName(vtChild, &bsName);
-			if(SUCCEEDED(hr))
+			if(SUCCEEDED(hr) && bsName)
 			{
 				AppendStringToTextifyResults(string, bsName.m_str, indexes);
 			}
 
 			CComBSTR bsValue;
 			hr = pAcc->get_accValue(vtChild, &bsValue);
-			if(SUCCEEDED(hr) && bsValue != bsName)
+			if(SUCCEEDED(hr) && bsValue && bsValue != bsName)
 			{
 				AppendStringToTextifyResults(string, bsValue.m_str, indexes);
 			}
@@ -694,7 +695,7 @@ namespace
 			{
 				CComBSTR bsDescription;
 				hr = pAcc->get_accDescription(vtChild, &bsDescription);
-				if(SUCCEEDED(hr) && bsDescription != bsName && bsDescription != bsValue)
+				if(SUCCEEDED(hr) && bsDescription && bsDescription != bsName && bsDescription != bsValue)
 				{
 					AppendStringToTextifyResults(string, bsDescription.m_str, indexes);
 				}
@@ -710,7 +711,7 @@ namespace
 			if(vtChild.lVal == CHILDID_SELF)
 			{
 				CComPtr<IDispatch> pDispParent;
-				HRESULT hr = pAcc->get_accParent(&pDispParent);
+				hr = pAcc->get_accParent(&pDispParent);
 				if(FAILED(hr) || !pDispParent)
 					break;
 
@@ -789,14 +790,14 @@ namespace
 
 			CComBSTR bsName;
 			hr = element->get_CurrentName(&bsName);
-			if(SUCCEEDED(hr) && bsName.Length() > 0)
+			if(SUCCEEDED(hr) && bsName)
 			{
 				AppendStringToTextifyResults(string, bsName.m_str, indexes);
 			}
 
 			CComVariant varValue;
 			hr = element->GetCurrentPropertyValue(UIA_ValueValuePropertyId, &varValue);
-			if(SUCCEEDED(hr) && varValue.vt == VT_BSTR && varValue.bstrVal != bsName)
+			if(SUCCEEDED(hr) && varValue.vt == VT_BSTR && bsName != varValue.bstrVal)
 			{
 				AppendStringToTextifyResults(string, varValue.bstrVal, indexes);
 			}
