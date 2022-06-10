@@ -27,6 +27,9 @@ BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	if(lInitParam || m_config->m_hideWndOnStartup)
 	{
 		m_hideDialog = true;
+		// Setting WS_EX_NOACTIVATE is a workaround for preventing the dialog
+		// from stealing focus on startup.
+		ModifyStyleEx(0, WS_EX_NOACTIVATE);
 	}
 
 	// Init and show tray icon.
@@ -65,6 +68,7 @@ void CMainDlg::OnWindowPosChanging(LPWINDOWPOS lpWndPos)
 {
 	if(m_hideDialog && (lpWndPos->flags & SWP_SHOWWINDOW))
 	{
+		ModifyStyleEx(WS_EX_NOACTIVATE, 0);
 		lpWndPos->flags &= ~SWP_SHOWWINDOW;
 		m_hideDialog = false;
 	}
