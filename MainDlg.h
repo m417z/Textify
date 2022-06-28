@@ -45,7 +45,7 @@ public:
 		COMMAND_HANDLER_EX(IDC_COMBO_KEYS, CBN_SELCHANGE, OnConfigChanged)
 		MESSAGE_HANDLER_EX(UWM_MOUSEHOOKCLICKED, OnMouseHookClicked)
 		MESSAGE_HANDLER_EX(m_uTaskbarCreatedMsg, OnTaskbarCreated)
-		MESSAGE_HANDLER_EX(m_uTextfiyMsg, OnCustomTextifyMsg)
+		MESSAGE_HANDLER_EX(m_uTextifyMsg, OnCustomTextifyMsg)
 		MESSAGE_HANDLER_EX(UWM_NOTIFYICON, OnNotifyIcon)
 		MESSAGE_HANDLER_EX(UWM_BRING_TO_FRONT, OnBringToFront)
 		MESSAGE_HANDLER_EX(UWM_UPDATE_CHECKED, OnUpdateChecked)
@@ -84,7 +84,7 @@ private:
 	std::optional<UserConfig> m_config;
 	std::optional<MouseGlobalHook> m_mouseGlobalHook;
 	UINT m_uTaskbarCreatedMsg = RegisterWindowMessage(L"TaskbarCreated");
-	UINT m_uTextfiyMsg = RegisterWindowMessage(L"Textify");
+	UINT m_uTextifyMsg = RegisterWindowMessage(L"Textify");
 	NOTIFYICONDATA m_notifyIconData = {};
 	bool m_hideDialog = false;
 	bool m_registeredHotKey = false;
