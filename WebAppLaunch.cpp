@@ -133,7 +133,8 @@ namespace
 			return PopupBrowserType::Edge;
 		}
 
-		if(_wcsicmp(szProgId, L"FirefoxURL") == 0)
+		if(_wcsicmp(szProgId, L"FirefoxURL") == 0 ||
+			_wcsnicmp(szProgId, L"FirefoxURL-", sizeof("FirefoxURL-") - 1) == 0)
 		{
 			return PopupBrowserType::Firefox;
 		}
