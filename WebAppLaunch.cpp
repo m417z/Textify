@@ -9,6 +9,7 @@ namespace
 		None,
 		Chrome,
 		Edge,
+		Brave,
 		Firefox,
 		IeControl
 	};
@@ -80,6 +81,13 @@ bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, in
 		return ExecuteCommand(edgeCommand);
 	}
 
+	if(popupBrowserType == PopupBrowserType::Brave)
+	{
+		formattedCommand.Replace(L"\"", L"");
+		CString braveCommand = L"brave.exe --app=\"" + formattedCommand + L"\"";
+		return ExecuteCommand(braveCommand);
+	}
+
 	if(popupBrowserType == PopupBrowserType::Firefox)
 	{
 		formattedCommand.Replace(L"\"", L"");
@@ -131,6 +139,13 @@ namespace
 			_wcsicmp(szProgId, L"MSEdgeDHTML") == 0)
 		{
 			return PopupBrowserType::Edge;
+		}
+
+		if(_wcsicmp(szProgId, L"BraveHTML") == 0 ||
+			_wcsicmp(szProgId, L"BraveBHTML") == 0 ||
+			_wcsicmp(szProgId, L"BraveDHTML") == 0)
+		{
+			return PopupBrowserType::Brave;
 		}
 
 		if(_wcsicmp(szProgId, L"FirefoxURL") == 0 ||
