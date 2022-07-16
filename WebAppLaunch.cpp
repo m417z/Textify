@@ -116,13 +116,13 @@ namespace
 			L"Software\\Microsoft\\Windows\\Shell\\Associations\\UrlAssociations\\http\\UserChoice",
 			KEY_QUERY_VALUE | KEY_WOW64_64KEY);
 		if(dwError != ERROR_SUCCESS)
-			return PopupBrowserType::IeControl;
+			return PopupBrowserType::None;
 
 		WCHAR szProgId[64];
 		ULONG nChars = ARRAYSIZE(szProgId);
 		dwError = regKey.QueryStringValue(L"ProgId", szProgId, &nChars);
 		if(dwError != ERROR_SUCCESS)
-			return PopupBrowserType::IeControl;
+			return PopupBrowserType::None;
 
 		// ProgId string reference:
 		// https://superuser.com/a/571854
@@ -154,7 +154,7 @@ namespace
 			return PopupBrowserType::Firefox;
 		}
 
-		return PopupBrowserType::IeControl;
+		return PopupBrowserType::None;
 	}
 
 	bool ExecuteCommand(const WCHAR* command)
