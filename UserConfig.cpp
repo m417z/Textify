@@ -83,6 +83,7 @@ bool UserConfig::LoadFromIniFile()
 	m_autoCopySelection = GetPrivateProfileInt(L"config", L"auto_copy_selection", 0, iniFilePath);
 	m_hideWndOnStartup = GetPrivateProfileInt(L"config", L"hide_wnd_on_startup", 0, iniFilePath);
 	m_hideTrayIcon = GetPrivateProfileInt(L"config", L"hide_tray_icon", 0, iniFilePath);
+	m_textBoxNonResiable = GetPrivateProfileInt(L"config", L"text_box_non_resizable", 0, iniFilePath);
 	GetPrivateProfileString(L"config", L"font_name", L"", m_fontName.GetBuffer(LF_FACESIZE), LF_FACESIZE, iniFilePath);
 	m_fontName.ReleaseBuffer();
 	m_fontSize = GetPrivateProfileInt(L"config", L"font_size", 0, iniFilePath);

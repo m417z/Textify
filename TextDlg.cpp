@@ -82,6 +82,11 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 		editWnd.SetFont(m_editFont);
 	}
 
+	if(m_config.m_textBoxNonResiable)
+	{
+		ModifyStyle(WS_THICKFRAME, WS_BORDER);
+	}
+
 	InitWebAppButtons();
 
 	CString strDefaultText;
@@ -623,7 +628,7 @@ void CTextDlg::MakePinned()
 	// Add caption with an exit button.
 	SetWindowText(L"Textify");
 
-	ModifyStyle(0, DS_MODALFRAME | WS_CAPTION | WS_SYSMENU);
+	ModifyStyle(WS_BORDER, WS_THICKFRAME | DS_MODALFRAME | WS_CAPTION | WS_SYSMENU);
 
 	// Note: this causes WM_SIZE to be sent
 	WndAdjustWindowRect(m_hWnd, &rc);

@@ -41,6 +41,7 @@ public:
 	bool m_autoCopySelection;
 	bool m_hideWndOnStartup;
 	bool m_hideTrayIcon;
+	bool m_textBoxNonResiable;
 	CString m_fontName;
 	int m_fontSize;
 	bool m_unicodeSpacesToAscii;
