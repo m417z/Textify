@@ -4,6 +4,7 @@
 #include "MainDlg.h"
 #include "TextDlg.h"
 #include "SettingsDlg.h"
+#include "Functions.h"
 #include "update.h"
 #include "version.h"
 
@@ -13,10 +14,7 @@ BOOL CMainDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 	CenterWindow();
 
 	// Set icons.
-	HICON hIcon = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXICON), ::GetSystemMetrics(SM_CYICON));
-	SetIcon(hIcon, TRUE);
-	HICON hIconSmall = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
-	SetIcon(hIconSmall, FALSE);
+	ReloadMainIcon();
 
 	// Load and apply config.
 	m_config.emplace();
@@ -62,6 +60,11 @@ void CMainDlg::OnDestroy()
 	{
 		KillTimer(TIMER_UPDATE_CHECK);
 	}
+
+	// From GDI handle checks, not all icons are freed automatically.
+	::DestroyIcon(SetIcon(nullptr, TRUE));
+	::DestroyIcon(SetIcon(nullptr, FALSE));
+	::DestroyIcon(CStatic(GetDlgItem(IDC_MAIN_ICON)).SetIcon(nullptr));
 }
 
 void CMainDlg::OnWindowPosChanging(LPWINDOWPOS lpWndPos)
@@ -139,6 +142,12 @@ void CMainDlg::OnTimer(UINT_PTR nIDEvent)
 			SetTimer(TIMER_UPDATE_CHECK, 1000 * 60 * 60, NULL); // 1h
 		}
 	}
+}
+
+LRESULT CMainDlg::OnDpiChanged(UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	ReloadMainIcon();
+	return 0;
 }
 
 void CMainDlg::OnOK(UINT uNotifyCode, int nID, CWindow wndCtl)
@@ -270,7 +279,16 @@ LRESULT CMainDlg::OnTaskbarCreated(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if(!m_config->m_hideTrayIcon)
 	{
+		// Reload icon since the DPI might have changed. From the documentation:
+		// "On Windows 10, the taskbar also broadcasts this message when the DPI of
+		// the primary display changes."
+		m_trayIcon = LoadTrayIcon();
+		m_notifyIconData.hIcon = m_trayIcon;
+
 		Shell_NotifyIcon(NIM_ADD, &m_notifyIconData);
+
+		// Necessary to apply the newly loaded icon in Windows 11 22H2.
+		Shell_NotifyIcon(NIM_MODIFY, &m_notifyIconData);
 	}
 
 	return 0;
@@ -363,6 +381,27 @@ LRESULT CMainDlg::OnExit(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	Exit();
 	return 0;
+}
+
+void CMainDlg::ReloadMainIcon()
+{
+	UINT dpi = GetDpiForWindowWithFallback(m_hWnd);
+
+	HICON mainIcon = LoadIconWithScaleDownWithFallback(
+		ModuleHelper::GetResourceInstance(),
+		MAKEINTRESOURCE(IDR_MAINFRAME),
+		GetSystemMetricsForDpiWithFallback(SM_CXICON, dpi),
+		GetSystemMetricsForDpiWithFallback(SM_CYICON, dpi));
+	CIcon prevMainIcon = SetIcon(mainIcon, TRUE);
+
+	CIcon prevDlgMainIcon = CStatic(GetDlgItem(IDC_MAIN_ICON)).SetIcon(CopyIcon(mainIcon));
+
+	HICON mainIconSmall = LoadIconWithScaleDownWithFallback(
+		ModuleHelper::GetResourceInstance(),
+		MAKEINTRESOURCE(IDR_MAINFRAME),
+		GetSystemMetricsForDpiWithFallback(SM_CXSMICON, dpi),
+		GetSystemMetricsForDpiWithFallback(SM_CYSMICON, dpi));
+	CIcon prevMainIconSmall = SetIcon(mainIconSmall, FALSE);
 }
 
 void CMainDlg::ApplyUiLanguage()
@@ -559,16 +598,30 @@ void CMainDlg::ConfigToGui()
 
 void CMainDlg::InitNotifyIconData()
 {
+	m_trayIcon = LoadTrayIcon();
+
 	m_notifyIconData.cbSize = NOTIFYICONDATA_V1_SIZE;
 	m_notifyIconData.hWnd = m_hWnd;
 	m_notifyIconData.uID = 1;
 	m_notifyIconData.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP;
 	m_notifyIconData.uCallbackMessage = UWM_NOTIFYICON;
-	m_notifyIconData.hIcon = AtlLoadIconImage(IDR_MAINFRAME, LR_DEFAULTCOLOR, ::GetSystemMetrics(SM_CXSMICON), ::GetSystemMetrics(SM_CYSMICON));
+	m_notifyIconData.hIcon = m_trayIcon;
 
 	CString sWindowText;
 	GetWindowText(sWindowText);
 	wcscpy_s(m_notifyIconData.szTip, sWindowText);
+}
+
+HICON CMainDlg::LoadTrayIcon()
+{
+	HWND hTaskbarWnd = FindWindow(L"Shell_TrayWnd", NULL);
+	UINT dpi = GetDpiForWindowWithFallback(hTaskbarWnd ? hTaskbarWnd : m_hWnd);
+
+	return LoadIconWithScaleDownWithFallback(
+		ModuleHelper::GetResourceInstance(),
+		MAKEINTRESOURCE(IDR_MAINFRAME),
+		GetSystemMetricsForDpiWithFallback(SM_CXSMICON, dpi),
+		GetSystemMetricsForDpiWithFallback(SM_CYSMICON, dpi));
 }
 
 void CMainDlg::NotifyIconRightClickMenu()

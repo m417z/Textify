@@ -43,18 +43,19 @@
 #define IDS_ERROR                       237
 #define IDS_ERROR_OPEN_ADDRESS          238
 #define IDS_ERROR_EXECUTE               239
-#define IDC_MAIN_SYSLINK                1000
-#define IDC_MOUSE_SHORTCUT              1001
-#define IDC_CHECK_CTRL                  1002
-#define IDC_CHECK_ALT                   1003
-#define IDC_CHECK_SHIFT                 1004
-#define IDC_COMBO_KEYS                  1005
-#define IDC_ADVANCED                    1006
-#define IDC_SHOW_INI                    1007
-#define IDC_EXIT                        1008
-#define IDC_CONFIG_TEXT                 1009
-#define IDC_EDIT                        1010
-#define IDC_WEB_BUTTON_1                1011
+#define IDC_MAIN_ICON                   1000
+#define IDC_MAIN_SYSLINK                1001
+#define IDC_MOUSE_SHORTCUT              1002
+#define IDC_CHECK_CTRL                  1003
+#define IDC_CHECK_ALT                   1004
+#define IDC_CHECK_SHIFT                 1005
+#define IDC_COMBO_KEYS                  1006
+#define IDC_ADVANCED                    1007
+#define IDC_SHOW_INI                    1008
+#define IDC_EXIT                        1009
+#define IDC_CONFIG_TEXT                 1010
+#define IDC_EDIT                        1011
+#define IDC_WEB_BUTTON_1                1012
 
 // Next default values for new objects
 // 
@@ -62,7 +63,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        240
 #define _APS_NEXT_COMMAND_VALUE         32775
-#define _APS_NEXT_CONTROL_VALUE         1012
+#define _APS_NEXT_CONTROL_VALUE         1013
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

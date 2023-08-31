@@ -87,7 +87,7 @@ void UnicodeSpacesToAscii(CString& string)
 	}
 }
 
-UINT MyGetDpiForWindow(HWND hWnd)
+UINT GetDpiForWindowWithFallback(HWND hWnd)
 {
 	using GetDpiForWindow_t = UINT(WINAPI*)(HWND hwnd);
 	static GetDpiForWindow_t pGetDpiForWindow = []()
@@ -120,10 +120,10 @@ UINT MyGetDpiForWindow(HWND hWnd)
 
 int ScaleForWindow(HWND hWnd, int value)
 {
-	return MulDiv(value, MyGetDpiForWindow(hWnd), 96);
+	return MulDiv(value, GetDpiForWindowWithFallback(hWnd), 96);
 }
 
-int GetSystemMetricsForWindow(HWND hWnd, int nIndex)
+int GetSystemMetricsForDpiWithFallback(int nIndex, UINT dpi)
 {
 	using GetSystemMetricsForDpi_t = int(WINAPI*)(int nIndex, UINT dpi);
 	static GetSystemMetricsForDpi_t pGetSystemMetricsForDpi = []()
@@ -139,11 +139,46 @@ int GetSystemMetricsForWindow(HWND hWnd, int nIndex)
 
 	if(pGetSystemMetricsForDpi)
 	{
-		return pGetSystemMetricsForDpi(nIndex, MyGetDpiForWindow(hWnd));
+		return pGetSystemMetricsForDpi(nIndex, dpi);
 	}
 	else
 	{
 		return GetSystemMetrics(nIndex);
+	}
+}
+
+int GetSystemMetricsForWindow(HWND hWnd, int nIndex)
+{
+	return GetSystemMetricsForDpiWithFallback(nIndex, GetDpiForWindowWithFallback(hWnd));
+}
+
+HICON LoadIconWithScaleDownWithFallback(HINSTANCE hInst, PCWSTR pszName, int cx, int cy)
+{
+	using LoadIconWithScaleDown_t = HRESULT(WINAPI*)(HINSTANCE hinst, PCWSTR pszName, int cx, int cy, HICON* phico);
+	static LoadIconWithScaleDown_t pLoadIconWithScaleDown = []()
+	{
+		HMODULE hComctl32 = GetModuleHandle(L"comctl32.dll");
+		if(hComctl32)
+		{
+			return (LoadIconWithScaleDown_t)GetProcAddress(hComctl32, "LoadIconWithScaleDown");
+		}
+
+		return (LoadIconWithScaleDown_t)nullptr;
+	}();
+
+	if(pLoadIconWithScaleDown)
+	{
+		HICON hIcon;
+		if(SUCCEEDED(pLoadIconWithScaleDown(hInst, pszName, cx, cy, &hIcon)))
+		{
+			return hIcon;
+		}
+
+		return nullptr;
+	}
+	else
+	{
+		return (HICON)LoadImage(hInst, pszName, IMAGE_ICON, cx, cy, LR_DEFAULTCOLOR);
 	}
 }
 
@@ -163,7 +198,7 @@ BOOL AdjustWindowRectExForWindow(HWND hWnd, LPRECT lpRect, DWORD dwStyle, BOOL b
 
 	if(pAdjustWindowRectExForDpi)
 	{
-		return pAdjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, MyGetDpiForWindow(hWnd));
+		return pAdjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, GetDpiForWindowWithFallback(hWnd));
 	}
 	else
 	{
