@@ -11,10 +11,10 @@ namespace
 	bool GetAccessibleInfoFromPointUIA(POINT pt, CWindow& outWindow, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
 	void GetAccessibleInfoFromPoint(TextRetrievalMethod method, POINT pt, CWindow& outWindow, CString& outString, CRect& outRc, std::vector<int>& outIndexes);
 	void UnicodeSpacesToAscii(CString& string);
-	int MyGetDpiForWindow(HWND hWnd);
+	UINT MyGetDpiForWindow(HWND hWnd);
 	int ScaleForWindow(HWND hWnd, int value);
 	int GetSystemMetricsForWindow(HWND hWnd, int nIndex);
-	int AdjustWindowRectExForWindow(HWND hWnd, LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle);
+	BOOL AdjustWindowRectExForWindow(HWND hWnd, LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle);
 	BOOL UnadjustWindowRectExForWindow(HWND hWnd, LPRECT prc, DWORD dwStyle, BOOL fMenu, DWORD dwExStyle);
 	BOOL WndAdjustWindowRect(CWindow window, LPRECT prc);
 	BOOL WndUnadjustWindowRect(CWindow window, LPRECT prc);
@@ -1022,7 +1022,7 @@ namespace
 		}
 	}
 
-	int MyGetDpiForWindow(HWND hWnd)
+	UINT MyGetDpiForWindow(HWND hWnd)
 	{
 		using GetDpiForWindow_t = UINT(WINAPI*)(HWND hwnd);
 		static GetDpiForWindow_t pGetDpiForWindow = []()
@@ -1082,7 +1082,7 @@ namespace
 		}
 	}
 
-	int AdjustWindowRectExForWindow(HWND hWnd, LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle)
+	BOOL AdjustWindowRectExForWindow(HWND hWnd, LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle)
 	{
 		using AdjustWindowRectExForDpi_t = BOOL(WINAPI*)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);
 		static AdjustWindowRectExForDpi_t pAdjustWindowRectExForDpi = []()
