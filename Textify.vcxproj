@@ -125,6 +125,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="async_internet.cpp" />
+    <ClCompile Include="Functions.cpp" />
     <ClCompile Include="MainDlg.cpp" />
     <ClCompile Include="MouseGlobalHook.cpp" />
     <ClCompile Include="SettingsDlg.cpp" />
@@ -140,6 +141,7 @@
     <ClCompile Include="WebAppLaunch.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Functions.h" />
     <ClInclude Include="MainDlg.h" />
     <ClInclude Include="MouseGlobalHook.h" />
     <ClInclude Include="resource.h" />
