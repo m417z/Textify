@@ -855,7 +855,7 @@ namespace
 
 					CComPtr<IUIAutomationElement> nextParentElement;
 					hr = treeWalker->GetParentElement(parentElement, &nextParentElement);
-					if(FAILED(hr) || !parentElement)
+					if(FAILED(hr) || !nextParentElement)
 						break;
 
 					parentElement.Attach(nextParentElement.Detach());
