@@ -198,15 +198,7 @@ bool MouseGlobalHook::IsCursorOnExcludedProgram(POINT pt)
 
 	DWORD dwProcessId = window.GetWindowProcessID();
 
-	DWORD dwDesiredAccess = PROCESS_QUERY_LIMITED_INFORMATION;
-
-	OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
-	if(GetVersionEx(&osvi) && osvi.dwMajorVersion <= 5)
-	{
-		dwDesiredAccess = PROCESS_QUERY_INFORMATION;
-	}
-
-	CHandle process(::OpenProcess(dwDesiredAccess, FALSE, dwProcessId));
+	CHandle process(::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, dwProcessId));
 	if(!process)
 		return false;
 

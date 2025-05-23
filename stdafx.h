@@ -1,10 +1,10 @@
 #pragma once
 
 // Change these values to use different versions
-#define _WIN32_WINNT    _WIN32_WINNT_VISTA
+#define _WIN32_WINNT    _WIN32_WINNT_WIN7
 //#define _RICHEDIT_VER   0x0200
 
-#define NTDDI_VERSION    NTDDI_VISTA
+#define NTDDI_VERSION    NTDDI_WIN7
 #include <sdkddkver.h>
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers

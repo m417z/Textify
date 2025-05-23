@@ -152,36 +152,6 @@ int GetSystemMetricsForWindow(HWND hWnd, int nIndex)
 	return GetSystemMetricsForDpiWithFallback(nIndex, GetDpiForWindowWithFallback(hWnd));
 }
 
-HICON LoadIconWithScaleDownWithFallback(HINSTANCE hInst, PCWSTR pszName, int cx, int cy)
-{
-	using LoadIconWithScaleDown_t = HRESULT(WINAPI*)(HINSTANCE hinst, PCWSTR pszName, int cx, int cy, HICON* phico);
-	static LoadIconWithScaleDown_t pLoadIconWithScaleDown = []()
-	{
-		HMODULE hComctl32 = GetModuleHandle(L"comctl32.dll");
-		if(hComctl32)
-		{
-			return (LoadIconWithScaleDown_t)GetProcAddress(hComctl32, "LoadIconWithScaleDown");
-		}
-
-		return (LoadIconWithScaleDown_t)nullptr;
-	}();
-
-	if(pLoadIconWithScaleDown)
-	{
-		HICON hIcon;
-		if(SUCCEEDED(pLoadIconWithScaleDown(hInst, pszName, cx, cy, &hIcon)))
-		{
-			return hIcon;
-		}
-
-		return nullptr;
-	}
-	else
-	{
-		return (HICON)LoadImage(hInst, pszName, IMAGE_ICON, cx, cy, LR_DEFAULTCOLOR);
-	}
-}
-
 BOOL AdjustWindowRectExForWindow(HWND hWnd, LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle)
 {
 	using AdjustWindowRectExForDpi_t = BOOL(WINAPI*)(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi);

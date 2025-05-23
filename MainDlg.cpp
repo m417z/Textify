@@ -387,20 +387,24 @@ void CMainDlg::ReloadMainIcon()
 {
 	UINT dpi = GetDpiForWindowWithFallback(m_hWnd);
 
-	HICON mainIcon = LoadIconWithScaleDownWithFallback(
+	HICON mainIcon = nullptr;
+	LoadIconWithScaleDown(
 		ModuleHelper::GetResourceInstance(),
 		MAKEINTRESOURCE(IDR_MAINFRAME),
 		GetSystemMetricsForDpiWithFallback(SM_CXICON, dpi),
-		GetSystemMetricsForDpiWithFallback(SM_CYICON, dpi));
+		GetSystemMetricsForDpiWithFallback(SM_CYICON, dpi),
+		&mainIcon);
 	CIcon prevMainIcon = SetIcon(mainIcon, TRUE);
 
 	CIcon prevDlgMainIcon = CStatic(GetDlgItem(IDC_MAIN_ICON)).SetIcon(CopyIcon(mainIcon));
 
-	HICON mainIconSmall = LoadIconWithScaleDownWithFallback(
+	HICON mainIconSmall = nullptr;
+	LoadIconWithScaleDown(
 		ModuleHelper::GetResourceInstance(),
 		MAKEINTRESOURCE(IDR_MAINFRAME),
 		GetSystemMetricsForDpiWithFallback(SM_CXSMICON, dpi),
-		GetSystemMetricsForDpiWithFallback(SM_CYSMICON, dpi));
+		GetSystemMetricsForDpiWithFallback(SM_CYSMICON, dpi),
+		&mainIconSmall);
 	CIcon prevMainIconSmall = SetIcon(mainIconSmall, FALSE);
 }
 
@@ -426,15 +430,7 @@ void CMainDlg::ApplyUiLanguage()
 
 	if(uiLanguage)
 	{
-		OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
-		if(GetVersionEx(&osvi) && osvi.dwMajorVersion >= 6)
-		{
-			::SetThreadUILanguage(uiLanguage);
-		}
-		else
-		{
-			::SetThreadLocale(uiLanguage);
-		}
+		::SetThreadUILanguage(uiLanguage);
 	}
 
 	CString str;
@@ -541,7 +537,7 @@ void CMainDlg::UninitMouseAndKeyboardHotKeys()
 
 bool CMainDlg::RegisterConfiguredKeybdHotKey(const HotKey& keybdHotKey)
 {
-	UINT hotKeyModifiers = 0;
+	UINT hotKeyModifiers = MOD_NOREPEAT;
 
 	if(keybdHotKey.ctrl)
 		hotKeyModifiers |= MOD_CONTROL;
@@ -551,16 +547,6 @@ bool CMainDlg::RegisterConfiguredKeybdHotKey(const HotKey& keybdHotKey)
 
 	if(keybdHotKey.shift)
 		hotKeyModifiers |= MOD_SHIFT;
-
-	// Set MOD_NOREPEAT only for Windows 7 and newer.
-	OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
-	if(GetVersionEx(&osvi))
-	{
-		if(osvi.dwMajorVersion > 6 || (osvi.dwMajorVersion == 6 && osvi.dwMinorVersion >= 1))
-		{
-			hotKeyModifiers |= 0x4000 /*MOD_NOREPEAT*/;
-		}
-	}
 
 	return ::RegisterHotKey(m_hWnd, 1, hotKeyModifiers, keybdHotKey.key) != FALSE;
 }
@@ -617,11 +603,14 @@ HICON CMainDlg::LoadTrayIcon()
 	HWND hTaskbarWnd = FindWindow(L"Shell_TrayWnd", NULL);
 	UINT dpi = GetDpiForWindowWithFallback(hTaskbarWnd ? hTaskbarWnd : m_hWnd);
 
-	return LoadIconWithScaleDownWithFallback(
+	HICON trayIcon = nullptr;
+	LoadIconWithScaleDown(
 		ModuleHelper::GetResourceInstance(),
 		MAKEINTRESOURCE(IDR_MAINFRAME),
 		GetSystemMetricsForDpiWithFallback(SM_CXSMICON, dpi),
-		GetSystemMetricsForDpiWithFallback(SM_CYSMICON, dpi));
+		GetSystemMetricsForDpiWithFallback(SM_CYSMICON, dpi),
+		&trayIcon);
+	return trayIcon;
 }
 
 void CMainDlg::NotifyIconRightClickMenu()
