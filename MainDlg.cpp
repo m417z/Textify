@@ -86,7 +86,7 @@ LRESULT CMainDlg::OnNotify(int idCtrl, LPNMHDR pnmh)
 		{
 		case NM_CLICK:
 		case NM_RETURN:
-			if((int)ShellExecute(m_hWnd, L"open", ((PNMLINK)pnmh)->item.szUrl, NULL, NULL, SW_SHOWNORMAL) <= 32)
+			if((int)(DWORD_PTR)ShellExecute(m_hWnd, L"open", ((PNMLINK)pnmh)->item.szUrl, NULL, NULL, SW_SHOWNORMAL) <= 32)
 			{
 				CString title;
 				title.LoadString(IDS_ERROR);

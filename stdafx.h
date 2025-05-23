@@ -14,9 +14,9 @@
 #define _WTL_NO_UNION_CLASSES
 #define _ATL_CSTRING_EXPLICIT_CONSTRUCTORS
 
-// Fixes a build in GitHub Actions.
+// Required for building with GitHub Actions.
 #ifndef E_BOUNDS
-#define E_BOUNDS (HRESULT)(0x8000000BL)
+#define E_BOUNDS ((HRESULT)(0x8000000BL))
 #endif
 
 #include <atlbase.h>

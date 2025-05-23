@@ -71,7 +71,7 @@ namespace
 		// BLOCK: Run application
 		{
 			CMainDlg dlgMain;
-			nRet = dlgMain.DoModal(NULL, startHidden ? 1 : 0);
+			nRet = (int)dlgMain.DoModal(NULL, startHidden ? 1 : 0);
 		}
 
 		UnregisterClass(L"Textify", hInstance);

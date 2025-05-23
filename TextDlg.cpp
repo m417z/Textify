@@ -274,7 +274,7 @@ void CTextDlg::OnKeyDown(UINT vk, UINT nRepCnt, UINT nFlags)
 	{
 		int start, end;
 		m_wndEdit.GetSel(start, end);
-		int length = m_wndEdit.SendMessage(WM_GETTEXTLENGTH);
+		int length = (int)m_wndEdit.SendMessage(WM_GETTEXTLENGTH);
 
 		int newStart, newEnd;
 

@@ -188,7 +188,7 @@ namespace
 		HINSTANCE hRet = ::ShellExecute(nullptr, nullptr,
 			commandWithoutArgs, args.IsEmpty() ? nullptr : args,
 			nullptr, SW_SHOWNORMAL);
-		return (int)hRet > 32;
+		return (int)(DWORD_PTR)hRet > 32;
 	}
 
 	bool OpenWebApp(const WCHAR* urlWithParam, int width, int height)
