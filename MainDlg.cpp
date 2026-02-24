@@ -144,10 +144,9 @@ void CMainDlg::OnTimer(UINT_PTR nIDEvent)
 	}
 }
 
-LRESULT CMainDlg::OnDpiChanged(UINT uMsg, WPARAM wParam, LPARAM lParam)
+void CMainDlg::OnDpiChanged(UINT nDpiX, UINT nDpiY, PRECT pRect)
 {
 	ReloadMainIcon();
-	return 0;
 }
 
 void CMainDlg::OnOK(UINT uNotifyCode, int nID, CWindow wndCtl)

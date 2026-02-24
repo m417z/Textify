@@ -35,7 +35,7 @@ public:
 		MSG_WM_NOTIFY(OnNotify)
 		MSG_WM_HOTKEY(OnHotKey)
 		MSG_WM_TIMER(OnTimer)
-		MESSAGE_HANDLER_EX(0x02E0, OnDpiChanged) // WM_DPICHANGED
+		MSG_WM_DPICHANGED(OnDpiChanged)
 		COMMAND_ID_HANDLER_EX(IDOK, OnOK)
 		COMMAND_ID_HANDLER_EX(IDCANCEL, OnCancel)
 		COMMAND_ID_HANDLER_EX(IDC_SHOW_INI, OnShowIni)
@@ -59,7 +59,7 @@ public:
 	LRESULT OnNotify(int idCtrl, LPNMHDR pnmh);
 	void OnHotKey(int nHotKeyID, UINT uModifiers, UINT uVirtKey);
 	void OnTimer(UINT_PTR nIDEvent);
-	LRESULT OnDpiChanged(UINT uMsg, WPARAM wParam, LPARAM lParam);
+	void OnDpiChanged(UINT nDpiX, UINT nDpiY, PRECT pRect);
 	void OnOK(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnCancel(UINT uNotifyCode, int nID, CWindow wndCtl);
 	void OnShowIni(UINT uNotifyCode, int nID, CWindow wndCtl);
