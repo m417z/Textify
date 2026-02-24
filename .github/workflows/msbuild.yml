@@ -27,12 +27,15 @@ jobs:
       - name: Restore Packages
         run: nuget restore ${{ env.SOLUTION_FILE_PATH }}
       - name: Build Win32
-        working-directory: ${{env.GITHUB_WORKSPACE}}
         # Add additional options to the MSBuild command line here (like platform or verbosity level).
         # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
         run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION }} /p:Platform="Win32" ${{ env.SOLUTION_FILE_PATH }}
+      - name: Build x64
+        run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION }} /p:Platform="x64" ${{ env.SOLUTION_FILE_PATH }}
       - name: Package
         uses: actions/upload-artifact@v6
         with:
           name: Textify
-          path: Release\Textify.exe
+          path: |
+            Release\Textify.exe
+            x64\Release\Textify.exe
