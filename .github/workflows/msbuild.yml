@@ -22,22 +22,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      # Reference:
-      # https://github.com/JACoders/OpenJK/blob/ad98f609c4ac1c4b825db18f324fc54211296def/.github/workflows/build-deprecated.yml#L27
-      - name: Install v141_xp Toolchain
-        continue-on-error: true
-        shell: powershell
-        run: |
-          Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
-          $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
-          $WorkLoads = '--add Microsoft.VisualStudio.Component.WinXP'
-          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"", $WorkLoads, '--quiet', '--norestart', '--nocache')
-          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
-          if ($process.ExitCode -eq 0) {
-              Write-Host "components have been successfully added"
-          } else {
-              Write-Host "components were not installed"
-          }
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
       - name: Restore Packages
