@@ -10,16 +10,11 @@ namespace
 		Chrome,
 		Edge,
 		Brave,
-		Firefox,
-		IeControl
+		Firefox
 	};
-
-	const int g_defaultWidth = 400;
-	const int g_defaultHeight = 700;
 
 	PopupBrowserType DetectPopupBrowserType();
 	bool ExecuteCommand(const WCHAR* command);
-	bool OpenWebApp(const WCHAR* urlWithParam, int width, int height);
 }
 
 bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, int height)
@@ -46,11 +41,6 @@ bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, in
 	{
 		formattedCommand = command + (sizeof("popup-firefox!") - 1);
 		popupBrowserType = PopupBrowserType::Firefox;
-	}
-	else if(wcsncmp(L"popup-ie-control!", command, sizeof("popup-ie-control!") - 1) == 0)
-	{
-		formattedCommand = command + (sizeof("popup-ie-control!") - 1);
-		popupBrowserType = PopupBrowserType::IeControl;
 	}
 	else
 	{
@@ -96,11 +86,6 @@ bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, in
 		firefoxCommand.Format(L"firefox.exe -width %d -height %d -new-window \"%s\"",
 			width, height, formattedCommand.GetString());
 		return ExecuteCommand(firefoxCommand);
-	}
-
-	if(popupBrowserType == PopupBrowserType::IeControl)
-	{
-		return OpenWebApp(formattedCommand, width, height);
 	}
 
 	return ExecuteCommand(formattedCommand);
@@ -190,81 +175,5 @@ namespace
 			commandWithoutArgs, args.IsEmpty() ? nullptr : args,
 			nullptr, SW_SHOWNORMAL);
 		return (int)(DWORD_PTR)hRet > 32;
-	}
-
-	bool OpenWebApp(const WCHAR* urlWithParam, int width, int height)
-	{
-		if(width <= 0 || height <= 0)
-		{
-			width = g_defaultWidth;
-			height = g_defaultHeight;
-		}
-
-		CDC hdc = ::GetDC(NULL);
-		if(hdc)
-		{
-			width = MulDiv(width, hdc.GetDeviceCaps(LOGPIXELSX), 96);
-			height = MulDiv(height, hdc.GetDeviceCaps(LOGPIXELSX), 96);
-			hdc.DeleteDC();
-		}
-
-		CPoint pt;
-		GetCursorPos(&pt);
-
-		CRect rcWindow(pt.x - width / 2, pt.y - height / 2, pt.x + width / 2, pt.y + height / 2);
-
-		HMONITOR hMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-		MONITORINFO monitorinfo = { sizeof(MONITORINFO) };
-		if(GetMonitorInfo(hMonitor, &monitorinfo))
-		{
-			CRect rcMonitor{ monitorinfo.rcMonitor };
-
-			if(rcWindow.Height() > rcMonitor.Height())
-			{
-				rcWindow.top = 0;
-				rcWindow.bottom = rcMonitor.Height();
-			}
-
-			if(rcWindow.Width() > rcMonitor.Width())
-			{
-				rcWindow.left = 0;
-				rcWindow.right = rcMonitor.Width();
-			}
-
-			if(rcWindow.left < rcMonitor.left)
-			{
-				rcWindow.MoveToX(rcMonitor.left);
-			}
-			else if(rcWindow.right > rcMonitor.right)
-			{
-				rcWindow.MoveToX(rcMonitor.right - rcWindow.Width());
-			}
-
-			if(rcWindow.top < rcMonitor.top)
-			{
-				rcWindow.MoveToY(rcMonitor.top);
-			}
-			else if(rcWindow.bottom > rcMonitor.bottom)
-			{
-				rcWindow.MoveToY(rcMonitor.bottom - rcWindow.Height());
-			}
-		}
-
-		static BOOL(__stdcall * pShowModalBrowserHost)(const WCHAR*, int, const RECT*) = (decltype(pShowModalBrowserHost))-1;
-		if(pShowModalBrowserHost == (decltype(pShowModalBrowserHost))-1)
-		{
-			HMODULE hWebApp = LoadLibrary(L"WebApp.dll");
-			if(hWebApp)
-			{
-				pShowModalBrowserHost = (decltype(pShowModalBrowserHost))GetProcAddress(hWebApp, "ShowModalBrowserHost");
-			}
-			else
-			{
-				pShowModalBrowserHost = nullptr;
-			}
-		}
-
-		return pShowModalBrowserHost &&
-			pShowModalBrowserHost(urlWithParam, SW_SHOWNORMAL, &rcWindow);
 	}
 }
