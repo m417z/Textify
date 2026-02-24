@@ -21,7 +21,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Add MSBuild to PATH
         uses: microsoft/setup-msbuild@v2
       - name: Restore Packages
@@ -32,7 +32,7 @@ jobs:
         # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
         run: msbuild /m /p:Configuration=${{ env.BUILD_CONFIGURATION }} /p:Platform="Win32" ${{ env.SOLUTION_FILE_PATH }}
       - name: Package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: Textify
           path: Release\Textify.exe
