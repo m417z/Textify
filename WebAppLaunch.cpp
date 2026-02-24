@@ -62,6 +62,7 @@ bool CommandLaunch(const WCHAR* command, const WCHAR* replacement, int width, in
 	replacementWithoutQuotes.Replace(L"\"", L"");
 
 	formattedCommand.Replace(L"%s", URLEncoder::Encode(replacement));
+	formattedCommand.Replace(L"%ds", URLEncoder::Encode(URLEncoder::Encode(replacement)));
 	formattedCommand.Replace(L"%cs", replacementWithoutQuotes);
 	formattedCommand.Replace(L"%rs", replacement);
 
