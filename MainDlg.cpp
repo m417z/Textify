@@ -352,7 +352,7 @@ LRESULT CMainDlg::OnUpdateChecked(UINT uMsg, WPARAM wParam, LPARAM lParam)
 			DWORD dwUpdateVersion = UpdateCheckGetVersionLong();
 			if(dwUpdateVersion && dwUpdateVersion > VER_FILE_VERSION_LONG)
 			{
-				HWND hPopup = IsWindowEnabled() ? m_hWnd : GetLastActivePopup();
+				HWND hPopup = IsWindowEnabled() ? m_hWnd : GetLastActivePopup().m_hWnd;
 				UpdateTaskDialog(hPopup, UpdateCheckGetVersion());
 			}
 

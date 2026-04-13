@@ -52,7 +52,7 @@ BOOL CTextDlg::OnInitDialog(CWindow wndFocus, LPARAM lInitParam)
 		//return FALSE;
 	}
 
-	CEdit editWnd = GetDlgItem(IDC_EDIT);
+	CEdit editWnd(GetDlgItem(IDC_EDIT));
 
 	// Init font.
 	if(!m_config.m_fontName.IsEmpty() || m_config.m_fontSize)
@@ -202,7 +202,7 @@ void CTextDlg::OnSize(UINT nType, CSize size)
 	CButton webAppButtonLast;
 	if(numberOfWebAppButtons > 0)
 	{
-		CButton button = GetDlgItem(IDC_WEB_BUTTON_1 - 1 + numberOfWebAppButtons);
+		CButton button(GetDlgItem(IDC_WEB_BUTTON_1 - 1 + numberOfWebAppButtons));
 		if(button && button.IsWindowVisible())
 		{
 			webAppButtonLast = button;
@@ -234,7 +234,7 @@ void CTextDlg::OnSize(UINT nType, CSize size)
 
 		for(int i = numberOfWebAppButtons - 1; i >= 1; i--)
 		{
-			CButton button = GetDlgItem(IDC_WEB_BUTTON_1 - 1 + i);
+			CButton button(GetDlgItem(IDC_WEB_BUTTON_1 - 1 + i));
 
 			CRect buttonRect;
 			button.GetWindowRect(&buttonRect);
@@ -252,7 +252,7 @@ void CTextDlg::OnSize(UINT nType, CSize size)
 		}
 	}
 
-	CEdit editWnd = GetDlgItem(IDC_EDIT);
+	CEdit editWnd(GetDlgItem(IDC_EDIT));
 	editWnd.DeferWindowPos(hDwp, nullptr, 0, 0, clientRect.Width(), firstButtonTop,
 		SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
 
@@ -405,7 +405,7 @@ void CTextDlg::InitWebAppButtons()
 
 void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CString strText, CString strDefaultText)
 {
-	CEdit editWnd = GetDlgItem(IDC_EDIT);
+	CEdit editWnd(GetDlgItem(IDC_EDIT));
 
 	// A dirty, partial workaround.
 	// http://stackoverflow.com/questions/35673347
@@ -473,7 +473,7 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 			numberOfWebAppButtonsY = (numberOfWebAppButtons + numberOfWebAppButtonsPerRow - 1) / numberOfWebAppButtonsPerRow;
 		}
 
-		CButton webAppButton = GetDlgItem(IDC_WEB_BUTTON_1);
+		CButton webAppButton(GetDlgItem(IDC_WEB_BUTTON_1));
 		CRect webAppButtonRect;
 		webAppButton.GetWindowRect(webAppButtonRect);
 		webAppButtonSize = webAppButtonRect.Size();
@@ -561,7 +561,7 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 					ptButton.y += webAppButtonSize.cy;
 				}
 
-				CButton webAppButton = GetDlgItem(IDC_WEB_BUTTON_1 + i);
+				CButton webAppButton(GetDlgItem(IDC_WEB_BUTTON_1 + i));
 				webAppButton.SetWindowPos(NULL, ptButton.x, ptButton.y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 
 				ptButton.x += webAppButtonSize.cx;
@@ -572,7 +572,7 @@ void CTextDlg::AdjustWindowLocationAndSize(CPoint ptEvent, CRect rcAccObject, CS
 			// Hide WebApp buttons.
 			for(int i = 0; i < numberOfWebAppButtons; i++)
 			{
-				CButton webAppButton = GetDlgItem(IDC_WEB_BUTTON_1 + i);
+				CButton webAppButton(GetDlgItem(IDC_WEB_BUTTON_1 + i));
 				webAppButton.ShowWindow(SW_HIDE);
 			}
 		}
@@ -631,7 +631,7 @@ void CTextDlg::MakePinned()
 
 	m_editIndexes.clear();
 
-	CEdit editWnd = GetDlgItem(IDC_EDIT);
+	CEdit editWnd(GetDlgItem(IDC_EDIT));
 	editWnd.ShowScrollBar(SB_VERT);
 
 	m_pinned = true;

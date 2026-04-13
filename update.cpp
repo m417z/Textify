@@ -18,8 +18,8 @@ typedef struct tagUTASKDIALOGSTRUCT {
 
 	BOOL bDownloading;
 	BOOL bShowingProgressBar;
-	WCHAR* pHost;
-	WCHAR* pPath;
+	const WCHAR* pHost;
+	const WCHAR* pPath;
 	WCHAR szTempFile[MAX_PATH];
 	DWORD dwFileSizeTotal;
 	DWORD dwFileSizeDownloaded;
@@ -381,7 +381,7 @@ static HRESULT CALLBACK TaskDialogCallbackProc(HWND hWnd, UINT uNotification, WP
 			case ERROR_SUCCESS:
 				if(GetRequestHttpStatusCode() != 200)
 				{
-					WCHAR* pTextFormat = L"The server has reported an error (%u). Please try again later.";
+					const WCHAR* pTextFormat = L"The server has reported an error (%u). Please try again later.";
 					WCHAR* pText = (WCHAR*)HeapAlloc(GetProcessHeap(), 0,
 						(lstrlen(pTextFormat) + (sizeof("1234567890") - 1) + 1) * sizeof(WCHAR));
 					if(pText)

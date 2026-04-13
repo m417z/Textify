@@ -89,7 +89,7 @@ bool UserConfig::LoadFromIniFile()
 	m_fontSize = GetPrivateProfileInt(L"config", L"font_size", 0, iniFilePath);
 	m_unicodeSpacesToAscii = GetPrivateProfileInt(L"config", L"unicode_spaces_to_ascii", 0, iniFilePath);
 
-	m_textRetrievalMethod = TextRetrievalMethod::default;
+	m_textRetrievalMethod = TextRetrievalMethod::defaultMethod;
 	GetPrivateProfileString(L"config", L"text_retrieval_method", L"", szBuffer, ARRAYSIZE(szBuffer), iniFilePath);
 	if(_wcsicmp(szBuffer, L"msaa") == 0)
 	{

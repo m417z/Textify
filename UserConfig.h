@@ -21,7 +21,7 @@ struct WebButtonInfo
 
 enum class TextRetrievalMethod
 {
-	default,
+	defaultMethod,
 	msaa,
 	uia
 };
